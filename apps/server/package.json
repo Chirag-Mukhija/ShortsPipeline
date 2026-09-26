@@ -1,0 +1,38 @@
+{
+  "name": "@clipforge/server",
+  "description": "HTTP API, SQLite-backed job runner and every pipeline step from topic to rendered, published short.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/index.ts",
+    "start": "NODE_ENV=production tsx src/index.ts",
+    "make": "tsx src/cli.ts",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "@clipforge/schema": "workspace:*",
+    "@clipforge/video": "workspace:*",
+    "@hono/node-server": "^2.1.1",
+    "@remotion/bundler": "4.0.529",
+    "@remotion/renderer": "4.0.529",
+    "better-sqlite3": "^13.0.3",
+    "drizzle-orm": "^0.45.3",
+    "hono": "^4.13.9",
+    "microsoft-cognitiveservices-speech-sdk": "^1.51.0",
+    "msedge-tts": "^2.0.8",
+    "nanoid": "^6.0.1",
+    "shiki": "^4.4.3",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^26.6.3",
+    "drizzle-kit": "^0.31.11",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}

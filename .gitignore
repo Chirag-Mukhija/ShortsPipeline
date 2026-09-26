@@ -1,0 +1,9 @@
+# Keeps generated media, local data, secrets and build output out of version control.
+node_modules/
+dist/
+data/
+out/
+.env
+*.log
+.DS_Store
+*.tsbuildinfo

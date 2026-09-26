@@ -1,0 +1,28 @@
+{
+  "name": "@clipforge/video",
+  "description": "Remotion compositions: brand kit, scene templates and the Short composition rendered from a timeline.",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./entry": "./src/entry.ts",
+    "./constants": "./src/constants.ts"
+  },
+  "scripts": {
+    "studio": "remotion studio src/entry.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@clipforge/schema": "workspace:*",
+    "@remotion/google-fonts": "4.0.529",
+    "lucide-react": "^1.48.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "4.0.529"
+  },
+  "devDependencies": {
+    "@remotion/cli": "4.0.529",
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}

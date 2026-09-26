@@ -1,0 +1,44 @@
+/* Studio theme: Tailwind plus the ClipForge brand tokens. */
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #090b10;
+  --color-panel: #10141d;
+  --color-surface: #161b26;
+  --color-surface-hi: #1f2635;
+  --color-line: #2a3244;
+  --color-ink: #f5f7fb;
+  --color-muted: #8d97ab;
+  --color-dim: #5b6479;
+  --color-accent: #ffb224;
+  --color-accent-ink: #1a1200;
+  --color-good: #3ddc97;
+  --color-bad: #ff5c7a;
+  --color-info: #4cc2ff;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", "Inter", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
