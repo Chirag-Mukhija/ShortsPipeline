@@ -8,6 +8,20 @@
       "when": 1790428206060,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1790449336368,
+      "tag": "0001_add_feedback_note",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790450280630,
+      "tag": "0002_add_recordings",
+      "breakpoints": true
     }
   ]
 }

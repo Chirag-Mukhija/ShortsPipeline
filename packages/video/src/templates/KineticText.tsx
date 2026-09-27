@@ -2,7 +2,7 @@
 import type { KineticTextProps } from "@clipforge/schema";
 import type { FC } from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
-import { colors } from "../brand";
+import { useTheme } from "../ThemeContext";
 import { ContentArea } from "../components/ContentArea";
 import { Glyph } from "../components/Glyph";
 import { Words } from "../components/Words";
@@ -11,6 +11,7 @@ import { SPRING_POP, cueFrames, pulseAt, springAt } from "../lib/anim";
 import type { TemplateProps } from "./types";
 
 export const KineticText: FC<TemplateProps<KineticTextProps>> = ({ props, cues }) => {
+  const { palette } = useTheme();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const chars = props.text.length;
@@ -21,7 +22,7 @@ export const KineticText: FC<TemplateProps<KineticTextProps>> = ({ props, cues }
     <ContentArea style={{ gap: 44 }}>
       {props.icon ? (
         <div style={{ transform: `translateY(${Math.sin(frame / 12) * 10}px) scale(${iconIn})` }}>
-          <Glyph icon={props.icon} size={170} color={colors.accent} />
+          <Glyph icon={props.icon} size={170} color={palette.accent} />
         </div>
       ) : null}
       <div

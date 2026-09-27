@@ -3,6 +3,7 @@ import {
   VIDEO_DEFAULTS,
   buildCaptionPages,
   estimateWordTimings,
+  pickPalette,
   resolveCues,
   splitWords,
   type AssetsArtifact,
@@ -118,6 +119,7 @@ function thinPops(effects: SfxCue[]): SfxCue[] {
 }
 
 export function buildTimeline(input: {
+  projectId: string;
   script: Script;
   storyboard: Storyboard;
   voice: VoiceArtifact | null;
@@ -169,5 +171,7 @@ export function buildTimeline(input: {
     captions: buildCaptionPages(allWords),
     sfx: thinPops(effects),
     music: input.assets.music,
+    theme: { palette: pickPalette(input.projectId) },
+    background: input.assets.background,
   };
 }

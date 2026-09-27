@@ -2,19 +2,24 @@
 import type { VideoProps } from "@clipforge/schema";
 import type { FC } from "react";
 import { AbsoluteFill, type CalculateMetadataFunction, Html5Audio, Sequence } from "remotion";
-import { colors } from "./brand";
+import { ThemeProvider, useTheme } from "./ThemeContext";
 import { Background } from "./components/Background";
 import { Captions } from "./components/Captions";
+import { Gameplay } from "./components/Gameplay";
 import { ProgressBar } from "./components/ProgressBar";
 import { SceneShell } from "./components/SceneShell";
 import { fonts } from "./fonts";
 import { assetUrl } from "./lib/anim";
 import { SceneBody } from "./templates";
 
-export const ShortVideo: FC<VideoProps> = ({ timeline, assetBase }) => {
+const ShortVideoBody: FC<VideoProps> = ({ timeline, assetBase }) => {
+  const { palette } = useTheme();
   return (
-    <AbsoluteFill style={{ backgroundColor: colors.bg, color: colors.text, fontFamily: fonts.body }}>
+    <AbsoluteFill style={{ backgroundColor: palette.bg, color: palette.text, fontFamily: fonts.body }}>
       <Background />
+      {timeline.background ? (
+        <Gameplay src={timeline.background.src} durationInFrames={timeline.background.durationInFrames} assetBase={assetBase} />
+      ) : null}
       {timeline.scenes.map((scene) => (
         <Sequence
           key={scene.id}
@@ -41,6 +46,12 @@ export const ShortVideo: FC<VideoProps> = ({ timeline, assetBase }) => {
     </AbsoluteFill>
   );
 };
+
+export const ShortVideo: FC<VideoProps> = (props) => (
+  <ThemeProvider paletteId={props.timeline.theme.palette} hasBackground={Boolean(props.timeline.background)}>
+    <ShortVideoBody {...props} />
+  </ThemeProvider>
+);
 
 export const calculateShortMetadata: CalculateMetadataFunction<VideoProps> = ({ props }) => ({
   durationInFrames: Math.max(1, props.timeline.durationInFrames),

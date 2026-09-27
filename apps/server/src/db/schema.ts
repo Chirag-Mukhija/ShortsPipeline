@@ -46,6 +46,8 @@ export const jobs = sqliteTable(
     progress: real("progress").notNull().default(0),
     message: text("message"),
     error: text("error"),
+    // A creator's note attached when re-running a step with feedback (currently: regenerating the review with instructions).
+    feedbackNote: text("feedback_note"),
     runAfter: text("run_after").notNull(),
     createdAt: text("created_at").notNull(),
     startedAt: text("started_at"),
@@ -69,6 +71,24 @@ export const logs = sqliteTable(
   (table) => [index("logs_project").on(table.projectId)],
 );
 
+// One row per scene the creator has recorded or uploaded their own voice for; re-recording replaces the row
+// (unlike artifacts, a stale recording's audio file should actually be freed, not kept as history).
+export const recordings = sqliteTable(
+  "recordings",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    sceneId: text("scene_id").notNull(),
+    file: text("file").notNull(),
+    originalName: text("original_name"),
+    durationMs: real("duration_ms").notNull(),
+    createdAt: text("created_at").notNull(),
+  },
+  (table) => [index("recordings_project_scene").on(table.projectId, table.sceneId)],
+);
+
 export const spend = sqliteTable("spend", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   projectId: text("project_id"),
@@ -84,3 +104,4 @@ export const spend = sqliteTable("spend", {
 export type ProjectRow = typeof projects.$inferSelect;
 export type JobRow = typeof jobs.$inferSelect;
 export type LogRow = typeof logs.$inferSelect;
+export type RecordingRow = typeof recordings.$inferSelect;

@@ -1,5 +1,14 @@
 // Tests for cue anchoring, caption paging, diagram cleanup and frame-accurate timeline assembly.
-import { buildCaptionPages, resolveCues, type AssetsArtifact, type Script, type Storyboard, type VoiceArtifact } from "@clipforge/schema";
+import {
+  PALETTE_IDS,
+  buildCaptionPages,
+  pickPalette,
+  resolveCues,
+  type AssetsArtifact,
+  type Script,
+  type Storyboard,
+  type VoiceArtifact,
+} from "@clipforge/schema";
 import { describe, expect, it } from "vitest";
 import { buildTimeline, sanitizeDiagram } from "./timeline";
 
@@ -78,14 +87,21 @@ describe("buildTimeline", () => {
     voice: "test",
     totalMs: 2000,
     scenes: [
-      { id: "s1", file: "projects/x/audio/s1.mp3", durationMs: 1600, speechEndMs: 1100, words: words.slice(0, 4) },
-      { id: "s2", file: "projects/x/audio/s2.mp3", durationMs: 1400, speechEndMs: 900, words: words.slice(4).map((w) => ({ ...w, startMs: w.startMs - 1500, endMs: w.endMs - 1500 })) },
+      { id: "s1", file: "projects/x/audio/s1.mp3", durationMs: 1600, speechEndMs: 1100, words: words.slice(0, 4), source: "tts" },
+      {
+        id: "s2",
+        file: "projects/x/audio/s2.mp3",
+        durationMs: 1400,
+        speechEndMs: 900,
+        words: words.slice(4).map((w) => ({ ...w, startMs: w.startMs - 1500, endMs: w.endMs - 1500 })),
+        source: "tts",
+      },
     ],
   };
-  const assets: AssetsArtifact = { media: {}, code: {}, music: null };
+  const assets: AssetsArtifact = { media: {}, code: {}, music: null, background: null };
 
   it("chains scenes back to back, trims trailing silence and holds the last scene", () => {
-    const timeline = buildTimeline({ script, storyboard, voice, assets, sfxVolume: 0.5 });
+    const timeline = buildTimeline({ projectId: "proj-x", script, storyboard, voice, assets, sfxVolume: 0.5 });
     const [first, second] = timeline.scenes;
     expect(first!.from).toBe(0);
     expect(first!.durationInFrames).toBe(Math.ceil(((1100 + 260) / 1000) * 30));
@@ -96,5 +112,31 @@ describe("buildTimeline", () => {
     expect(timeline.captions.at(-1)!.words.at(-1)!.text).toBe("win.");
     expect(timeline.sfx.some((s) => s.name === "slam")).toBe(true);
     expect(timeline.sfx.some((s) => s.name === "whoosh" && s.frame === second!.from)).toBe(true);
+  });
+
+  it("picks a palette deterministically from the project id and passes the background clip through", () => {
+    const timeline = buildTimeline({
+      projectId: "proj-x",
+      script,
+      storyboard,
+      voice,
+      assets: { ...assets, background: { src: "library/gameplay/clip.mp4", durationInFrames: 300 } },
+      sfxVolume: 0.5,
+    });
+    expect(PALETTE_IDS).toContain(timeline.theme.palette);
+    expect(timeline.theme.palette).toBe(pickPalette("proj-x"));
+    expect(timeline.background).toEqual({ src: "library/gameplay/clip.mp4", durationInFrames: 300 });
+  });
+});
+
+describe("pickPalette", () => {
+  it("is deterministic for the same seed and picks a valid id", () => {
+    expect(pickPalette("abc123")).toBe(pickPalette("abc123"));
+    expect(PALETTE_IDS).toContain(pickPalette("abc123"));
+  });
+
+  it("varies across different seeds", () => {
+    const picks = new Set(["a", "b", "c", "d", "e", "f", "g"].map((seed) => pickPalette(seed)));
+    expect(picks.size).toBeGreaterThan(1);
   });
 });

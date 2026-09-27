@@ -10,6 +10,7 @@ import { startAutopilot } from "./pipeline/autopilot";
 import { StepError, errorMessage } from "./pipeline/errors";
 import { startRunner } from "./pipeline/runner";
 import { api } from "./routes/api";
+import { recordings } from "./routes/recordings";
 import { seedIdeas } from "./seed";
 
 const SERVABLE = ["projects/", "library/", "exports/"];
@@ -34,6 +35,7 @@ export function createApp(): Hono {
   app.all(`${FILES_PREFIX}/*`, (c) => c.text("Not found", 404));
 
   app.route("/api", api);
+  app.route("/api", recordings);
   app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));
 
   if (existsSync(paths.studioDist)) {

@@ -1,5 +1,6 @@
 // Render-ready timeline: everything the Remotion composition needs, resolved to frames, files and colors.
 import type { CueAction } from "./storyboard";
+import type { PaletteId } from "./theme";
 import type {
   CodeBlockProps,
   CompareProps,
@@ -58,6 +59,8 @@ export type Timeline = {
   captions: CaptionPage[];
   sfx: { frame: number; name: SfxName; volume: number }[];
   music: { src: string; volume: number } | null;
+  theme: { palette: PaletteId };
+  background: { src: string; durationInFrames: number } | null;
 };
 
 export type VideoProps = { timeline: Timeline; assetBase: string };

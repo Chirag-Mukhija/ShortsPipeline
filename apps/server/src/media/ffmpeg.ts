@@ -19,6 +19,18 @@ export async function probeDurationMs(file: string): Promise<number> {
   return Math.round(seconds * 1000);
 }
 
+// Decision: 16kHz mono PCM is whisper.cpp's native input format; this is a throwaway copy made only for
+// transcription, never the scene's final audio file.
+export async function transcodeToWav(input: string, output: string): Promise<void> {
+  await execOrThrow("ffmpeg", ["-y", "-loglevel", "error", "-i", input, "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", output]);
+}
+
+// Decision: every scene's final audio is mp3 regardless of source (TTS or a recording), so buildTimeline,
+// the render, and the pause-tightening in tighten.ts never need to branch on where the voice came from.
+export async function transcodeToMp3(input: string, output: string): Promise<void> {
+  await execOrThrow("ffmpeg", ["-y", "-loglevel", "error", "-i", input, "-ac", "1", "-c:a", "libmp3lame", "-b:a", "128k", output]);
+}
+
 export async function normalizeLoudness(input: string, output: string): Promise<void> {
   await execOrThrow(
     "ffmpeg",

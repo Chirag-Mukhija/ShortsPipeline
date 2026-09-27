@@ -102,7 +102,7 @@ stateDiagram-v2
 
 - **Two lanes.** `render` has its own lane, and every other step runs in `default`. Each lane runs one job at a time, so a 2-minute render never blocks the next video's writing steps.
 - **Atomic claim.** A lane picks the oldest `queued` job whose `run_after` has passed and marks it `running` inside one SQLite `IMMEDIATE` transaction, so two processes can never grab the same job.
-- **Advance.** When a step succeeds, its output is saved, the job is marked `done`, and the next step is queued. The last step marks the project `done`. In *assisted* mode, steps listed in `pause_after` stop at `paused` until approved. The engine supports this, but the studio's editing screens don't exist yet.
+- **Advance.** When a step succeeds, its output is saved, the job is marked `done`, and the next step is queued. The last step marks the project `done`. In *assisted* mode (the default for every new project), steps listed in `pauseAfter` stop at `paused` until approved. New projects default to `pauseAfter: ["review"]`, so every short stops right after the critic pass for a look before storyboard, voice and render run. See "The review checkpoint" below for what you can do at that pause.
 - **Retries.** Errors are retryable by default (network blips, timeouts). The job is re-queued after 5s, then 10s, for up to 3 attempts. Errors raised as `StepError(…, retryable=false)` fail straight away: missing API key, budget used up, model output still invalid after repair.
 - **Crash recovery.** On startup, any job left `running` goes back to `queued` without using up an attempt. Restarting in the middle of a step simply runs that step again.
 - **Guards.** Re-running while a step is running is refused. Starting a project cancels its leftover queued jobs first, so there's never more than one chain per project.
@@ -123,7 +123,14 @@ Writes 5–9 scenes totalling **110–165 words**. At the voice's pace that come
 - **Written for text-to-speech:** "sixteen gigs", never "16GB".
 
 ### 3 · Critic pass
-A separate "toughest editor" prompt scores the draft on hook, clarity, accuracy, pacing and wit. It lists concrete issues (factual problems first) and returns the fixed final script. *Why:* in full-auto mode nobody reviews the script, so this step takes that role. In testing it consistently caught real errors, for example that WhatsApp forwarding doesn't re-compress a photo, and that Windows Task Manager *does* show compressed memory. Everything downstream uses `review.script`, not the draft.
+A separate "toughest editor" prompt scores the draft on hook, clarity, accuracy, pacing and wit. It lists concrete issues (factual problems first) and returns the fixed final script. In testing it consistently caught real errors, for example that WhatsApp forwarding doesn't re-compress a photo, and that Windows Task Manager *does* show compressed memory. Everything downstream uses `review.script`, not the draft.
+
+**The review checkpoint.** Every new project defaults to `mode: "assisted"`, `pauseAfter: ["review"]`, so the pipeline stops right here for a look before storyboard, voice and render run automatically. At the pause (`apps/studio/src/components/ArtifactTabs.tsx`'s `ScriptTab`), you can:
+- **Edit any scene's narration directly** — each is a plain `<textarea>`, saved on blur via `PUT /projects/:id/review/script`. This inserts a new `review` artifact row with the edited `script` but the same `scores`/`issues` (artifacts are append-only and "latest wins," so no schema change was needed to support edits).
+- **Leave a feedback note and regenerate** — `POST /projects/:id/review/regenerate` re-runs the `review` step with your note appended to the critic prompt as a firm instruction (`agents/prompts.ts`'s `reviewPrompt`). The regenerate always builds on the *latest* script (your direct edits, or a previous regenerate), never the original first draft, so a note never silently discards edits you already made (`pipeline/steps/writing.ts`'s `reviewStep` checks `latestArtifact("review")` before falling back to the raw `script` step output).
+- **Approve as-is** — the header's "Approve & continue" button, unconditional advance to storyboard.
+
+Both routes refuse to run unless the project is actually `paused` at `"review"` (`requirePausedAtReview` in `routes/api.ts`), so they can't fire against a step that already moved on.
 
 ### 4 · Storyboard
 For each scene the model picks **one template** and fills its props. It also writes **cues**: `{ word, action, target }`, meaning "when this word is spoken, do this to that element".
@@ -150,11 +157,20 @@ For each scene:
 4. **Jump-cut pacing.** ffmpeg finds silences (below -40 dB, over 0.2s). Every *interior* pause longer than `PAUSE_MAX_MS` (300ms) is cut down to 300ms, and word times are shifted by the removed amounts (`media/tighten.ts`). Edge pauses about 0.8s after each sentence, so this alone cut roughly 9s from a test video. The audio is re-chunked into fresh frames before MP3 encoding, because trimmed frames can crash libmp3lame. A real clip that triggered this is kept as a regression test.
 5. **Fallback chain.** Edge → Azure (if a key is set) → macOS `say` (estimated timings). The provider that voices scene 1 is used for every scene, so the voice never changes mid-video.
 
+**Your own voice, per scene.** Before any of the above, `voiceStep` checks `getRecording(projectId, sceneId)` (`db/repo.ts`) for a scene the creator recorded or uploaded (studio's `SceneRecorder.tsx`, any pipeline stage — recording is decoupled from `mode`/`pauseAfter` entirely). If one exists, `tts/whisperAlign.ts`'s `alignRecordedScene` handles it instead of TTS:
+1. Transcodes the upload to the scene's final `mp3` (`media/ffmpeg.ts`'s `transcodeToMp3`) and, separately, to a throwaway 16kHz mono `wav` for Whisper.
+2. Transcribes it with a local, offline **Whisper** model (`@remotion/install-whisper-cpp`, installed and cached once per machine — the same lazy `Promise`-caching pattern as `render/remotion.ts`'s bundle cache) and converts its word-level tokens to boundaries (`tokensToBoundaries`).
+3. Reuses `tts/align.ts`'s `alignWords` to map those boundaries onto the *canonical* narration text — but with **identity spans** (`identitySpans`), not `toSpeech()`'s pronunciation expansion, since a human says "macOS", not "mac O S".
+4. Runs the same jump-cut pacing as TTS scenes (step 4 above) — no special-casing for real recordings' different pause/noise characteristics; the plan is to revisit only if real recordings show bad cuts.
+
+If alignment fails for any reason (no internet for the one-time install, a corrupt upload, Whisper producing no clear words), that one scene falls back to the normal TTS chain and a warning is logged — a bad recording never fails the whole render. Every `VoiceScene` carries a `source: "tts" | "recorded"` so the studio can show which was used.
+
 ### 6 · Assets
 - **Sound effects.** A licence-free SFX kit (whoosh, pop, slam, ding) is generated once with ffmpeg math. There are no downloads and no licensing questions.
 - **Stock footage.** For `Media` scenes, Pexels then Pixabay is searched, preferring portrait video over 4s and falling back to a photo. The file is downloaded, and its credit goes into the YouTube description.
 - **Code highlighting.** Code is colored on the server with Shiki (One Dark Pro), so the video only paints pre-colored tokens.
 - **Music.** A background track is picked from `data/library/music/` if you've added any.
+- **Background gameplay.** A clip is picked from `data/library/gameplay/` if you've added any (`pickGameplay`, mirrors `pickMusic`'s seeded-by-project-id pick). Its duration is probed once so the video package can loop it cleanly.
 
 ### 7 · Timeline
 Pure code that turns everything into frames at 30 fps (`pipeline/timeline.ts`):
@@ -232,16 +248,19 @@ The narration `"Your macOS squeezes memory before it touches the disk. That's wh
 
 The `Short` composition is a stack of layers, bottom to top:
 
-1. **Background:** near-black gradient, two slowly drifting glows (amber and blue), a dot grid, a vignette.
-2. **Scenes:** each is a `<Sequence>` wrapped in `SceneShell`, which adds a spring entrance, a slow 3% camera drift, and cue-driven *shake* and *zoom*. Inside sits the template chosen for that scene.
-3. **Captions:** 86px Bricolage Grotesque with a thick outline. The word being spoken turns amber.
-4. **Progress bar:** thin amber line along the top.
-5. **Audio:** each scene's voice inside its `<Sequence>`, SFX at their frames, and looping music at 8% volume.
+1. **Background:** near-black gradient, two slowly drifting glows, a dot grid, a vignette — colored from the render's palette.
+2. **Gameplay** (only when the timeline has a `background` clip): a muted, looping strip across the bottom of the frame.
+3. **Scenes:** each is a `<Sequence>` wrapped in `SceneShell`, which adds a spring entrance, a slow 3% camera drift, and cue-driven *shake* and *zoom*. Inside sits the template chosen for that scene.
+4. **Captions:** 86px Bricolage Grotesque with a thick outline. The word being spoken turns the accent color.
+5. **Progress bar:** thin accent-colored line along the top.
+6. **Audio:** each scene's voice inside its `<Sequence>`, SFX at their frames, and looping music at 8% volume.
 
-**Brand kit** (`brand.ts`, `fonts.ts`):
-- **Colors:** background `#090B10`, text `#F5F7FB`, accent amber `#FFB224`, plus blue, green and red tones.
-- **Fonts:** Bricolage Grotesque (display), Inter (body), JetBrains Mono (code), loaded through Remotion's Google Fonts loader so renders wait for them.
-- **Safe zone:** content stays within x 72–1008 and y 210–1130, and captions sit around y 1275. That keeps everything clear of the YouTube Shorts and Reels top bar, bottom title block and right-hand buttons.
+**Theme** (`brand.ts`, `ThemeContext.tsx`, `fonts.ts`): a render's colors and safe-zone geometry are per-video, not fixed constants.
+- **Palette:** one of 5 built-in dark palettes (`amberBlack`, `cyanNavy`, `magentaViolet`, `emeraldTeal`, `crimsonCharcoal`), chosen deterministically from the project id (`pickPalette` in `packages/schema/src/theme.ts`, same seeded-hash pattern as `pickMusic`) so consecutive shorts don't repeat. `text`, `green`, `red` and `purple` stay identical across palettes (they carry meaning, not brand mood); background, accent and the secondary "blue" tone vary. Add a palette by adding an id to `PALETTE_IDS` and an entry to `PALETTES`.
+- **Layout:** `FULL_LAYOUT` (today's numbers, unchanged) or `SPLIT_LAYOUT` (a shorter content band plus a `gameplayTop` for the footage strip), chosen by whether the timeline has a `background` clip.
+- **Wiring:** `ShortVideo` wraps the composition in `<ThemeProvider paletteId={...} hasBackground={...}>`; every template and shared component reads `useTheme()` (`{ palette, tones, layout }`) instead of importing a fixed `colors`/`layout` object. This is the one channel Remotion actually passes per-render data through (the same way `assetBase` already worked), so it's the only place a per-video variation can live.
+- **Fonts:** Bricolage Grotesque (display), Inter (body), JetBrains Mono (code), loaded through Remotion's Google Fonts loader so renders wait for them — these don't vary per video.
+- **Safe zone:** full layout keeps content within x 72–1008 and y 210–1130, captions around y 1275 (clear of the platform's top bar, bottom title block and right-hand buttons). Split layout compresses the content band to y 150–1030, moves captions to y 1090, and starts the gameplay strip at y 1152 (exactly the bottom 40% of the 1920px canvas).
 
 ## 9. The studio
 
@@ -255,15 +274,22 @@ The `Short` composition is a stack of layers, bottom to top:
 |---|---|---|
 | TypeScript everywhere + Remotion | One language; the same component is both the live preview and the renderer; data-driven video | You need Manim-style maths animation (render it separately and drop it in as a clip) |
 | Templates + props, not generated code | Consistent brand, can't break a render, easy for a model to fill | A template keeps being missing: add it to the catalog |
-| Word-anchored cues | Survives voice, speed and pause changes; enables recording your own voice later | – |
+| Word-anchored cues | Survives voice, speed and pause changes — the same alignment approach also powers matching your own recorded voice against the script | – |
+| Recordings are a mutable table, not append-only artifacts | The studio needs to show "Your voice" vs "AI voice" without loading audio; re-recording should actually free the old file's disk space, unlike an artifact's kept history | – |
+| Recording is decoupled from `mode`/`pauseAfter` | You should be able to record a scene at any point — before the review pause, after it, or even after a full render (then *Re-run from… → Voiceover*) — not just during the one checkpoint | – |
+| Local Whisper, not a cloud STT API | Keeps the ₹500 budget and "free by default" promise intact; the one-time install is the tradeoff | A cloud STT provider for faster/no-local-build alignment |
 | SQLite jobs table instead of Redis/BullMQ | One user, a few videos a week; durable and inspectable with nothing extra to run | Many videos in parallel or several machines |
-| Critic pass | Stands in for human review in auto mode; catches factual errors | Assisted mode lets you review yourself |
+| Critic pass, then pause for review | The critic alone still occasionally misses things, or you might want a different take; a real human look before storyboard/voice/render is cheap and catches the rest | Set `pauseAfter: []` on a project to skip it |
+| Edits as a new artifact row, not a schema change | `saveArtifact` is already append-only and "latest wins"; an edit is just another insert | – |
 | `claude` CLI as the default writer | Zero keys, uses your existing plan | You want per-token billing or other providers: set a key |
 | Edge TTS by default | Free, natural Indian-English voices, word timings included | It breaks: add `AZURE_SPEECH_KEY` (same voices, official) |
 | Pause trimming to 300ms | Shorts pacing; Edge pauses ~0.8s per sentence | You prefer a calmer read: raise `PAUSE_MAX_MS` |
 | Procedural SFX | No licences, no downloads | You want richer sound: drop real files into `library/sfx` with the same names |
 | YouTube private, Instagram off | Nothing goes public without you looking at it | You trust autopilot enough to publish directly |
 | zod pinned to 4.5.4 | Remotion 4.0.529 requires that exact version | You upgrade Remotion |
+| Palette rotation, not LLM-chosen | Zero extra LLM cost, fully predictable, no mismatch risk | You want mood-matched palettes (e.g. red for security topics): have the storyboard agent emit a mood and map it to a palette id |
+| Gameplay footage is bring-your-own | Real gameplay clips are copyrighted; ClipForge only reads a local folder, the same as music | – |
+| Theme via React Context, not props | Templates read `colors`/`layout` at import time today; Remotion only passes per-render data through props/inputProps, so a context fed from the timeline was the only clean channel | – |
 
 ## 11. Extending
 
@@ -289,7 +315,11 @@ The `Short` composition is a stack of layers, bottom to top:
 | `media/tighten.ffmpeg.test.ts` | Real ffmpeg cuts on synthetic audio and on the Edge clip that once crashed the encoder |
 | `pipeline/timeline.test.ts` | Cue anchoring (exact, stem, unspoken), caption paging, diagram cleanup, scene timing and SFX |
 | `agents/checks.test.ts` | Script and storyboard semantic checks |
+| `agents/prompts.test.ts` | A feedback note is folded into the review prompt, never silently dropped |
 | `publish/youtube.test.ts` | Tag budget and cleaning |
-| `app.test.ts` | API validation, run guards, 404s, and that the database, secrets and `..` paths are never served |
+| `tts/whisperAlign.test.ts` | Whisper token filtering (drops empty/special tokens, ms offsets pass through unscaled) and identity-span building |
+| `media/transcode.ffmpeg.test.ts` | Real ffmpeg: a recording transcodes to 16kHz mono for Whisper and mp3 for the final scene file |
+| `db/repo.recordings.test.ts` | Re-recording replaces rather than duplicates; delete actually removes the row |
+| `app.test.ts` | API validation, run guards, 404s, the review-checkpoint edit/regenerate routes, the recordings upload/delete routes, and that the database, secrets and `..` paths are never served |
 
-Run everything with `pnpm test`.
+Run everything with `pnpm test`. The real whisper.cpp install (git clone + compile) and model download have no CI-friendly seam — they're covered by the pure token/span logic above and were verified manually end to end (a real recording, transcribed, aligned, and rendered).

@@ -1,15 +1,15 @@
 // HTTP API: projects and pipeline controls, system status, live SSE events and the YouTube OAuth handshake.
-import { MODES, STEPS, type SystemStatus } from "@clipforge/schema";
+import { MODES, ScriptSchema, STEPS, type Review, type SystemStatus } from "@clipforge/schema";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { z } from "zod";
 import { stockProviders } from "../assets/stock";
 import { env } from "../config";
-import { createProject, getProject, listProjects, monthSpendInr } from "../db/repo";
+import { createProject, getProject, latestArtifact, listProjects, monthSpendInr, saveArtifact, updateProject } from "../db/repo";
 import { llmProvider } from "../llm";
 import { nextAutopilotRun } from "../pipeline/autopilot";
 import { approveProject, removeProject, retryProject, startProject } from "../pipeline/control";
-import { errorMessage } from "../pipeline/errors";
+import { StepError, errorMessage } from "../pipeline/errors";
 import { emit, subscribe } from "../pipeline/events";
 import { projectDetail, projectSummary } from "../pipeline/views";
 import { completeYoutubeAuth, youtubeAuthUrl, youtubeConfigured, youtubeConnected } from "../publish/youtube";
@@ -18,10 +18,24 @@ import { ttsChain } from "../tts";
 const CreateBody = z.object({
   topic: z.string().trim().min(3).max(300),
   start: z.boolean().default(true),
-  mode: z.enum(MODES).default("auto"),
+  mode: z.enum(MODES).default("assisted"),
+  pauseAfter: z.array(z.enum(STEPS)).default(["review"]),
 });
 
 const StartBody = z.object({ from: z.enum(STEPS).optional() });
+const ReviewScriptBody = z.object({ script: ScriptSchema });
+const RegenerateBody = z.object({ note: z.string().trim().min(1).max(500) });
+
+// Decision: editing or regenerating the script only makes sense while paused right after the critic pass —
+// otherwise the step it would affect has either not run yet or has already moved on.
+function requirePausedAtReview(id: string) {
+  const project = getProject(id);
+  if (!project) throw new StepError("Project not found", false);
+  if (project.status !== "paused" || project.currentStep !== "review") {
+    throw new StepError("This project is not paused for review right now", false);
+  }
+  return project;
+}
 
 async function readJson(request: Request): Promise<unknown> {
   try {
@@ -61,7 +75,12 @@ api.get("/projects", (c) => c.json(listProjects().map((row) => projectSummary(ro
 api.post("/projects", async (c) => {
   const body = CreateBody.safeParse(await readJson(c.req.raw));
   if (!body.success) return c.json({ error: z.prettifyError(body.error) }, 400);
-  const project = createProject({ topic: body.data.topic, mode: body.data.mode, status: "idea" });
+  const project = createProject({
+    topic: body.data.topic,
+    mode: body.data.mode,
+    pauseAfter: body.data.pauseAfter,
+    status: "idea",
+  });
   if (body.data.start) startProject(project.id);
   emit({ type: "project", projectId: project.id });
   const row = getProject(project.id);
@@ -87,6 +106,28 @@ api.post("/projects/:id/retry", (c) => {
 
 api.post("/projects/:id/approve", (c) => {
   approveProject(c.req.param("id"));
+  return c.json({ ok: true });
+});
+
+api.put("/projects/:id/review/script", async (c) => {
+  const id = c.req.param("id");
+  requirePausedAtReview(id);
+  const body = ReviewScriptBody.safeParse(await readJson(c.req.raw));
+  if (!body.success) return c.json({ error: z.prettifyError(body.error) }, 400);
+  const current = latestArtifact<Review>(id, "review");
+  if (!current) return c.json({ error: "No script draft to edit yet" }, 400);
+  saveArtifact(id, "review", { ...current, script: body.data.script });
+  updateProject(id, { title: body.data.script.title });
+  emit({ type: "project", projectId: id });
+  return c.json({ ok: true });
+});
+
+api.post("/projects/:id/review/regenerate", async (c) => {
+  const id = c.req.param("id");
+  requirePausedAtReview(id);
+  const body = RegenerateBody.safeParse(await readJson(c.req.raw));
+  if (!body.success) return c.json({ error: z.prettifyError(body.error) }, 400);
+  startProject(id, "review", body.data.note);
   return c.json({ ok: true });
 });
 

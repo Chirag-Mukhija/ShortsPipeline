@@ -1,5 +1,5 @@
 // Project page: live pipeline progress and log, the video preview, step outputs and controls to retry or re-run.
-import { STEPS, STEP_LABELS, type Step, type Timeline } from "@clipforge/schema";
+import { STEPS, STEP_LABELS, type Script, type Step, type Timeline } from "@clipforge/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api";
 import { ArtifactTabs } from "../components/ArtifactTabs";
@@ -26,6 +26,8 @@ export function ProjectPage({ id }: { id: string }) {
   const start = useMutation({ mutationFn: (from?: Step) => api.start(id, from), onSuccess: refresh });
   const retry = useMutation({ mutationFn: () => api.retry(id), onSuccess: refresh });
   const approve = useMutation({ mutationFn: () => api.approve(id), onSuccess: refresh });
+  const saveScript = useMutation({ mutationFn: (script: Script) => api.saveScript(id, script), onSuccess: refresh });
+  const regenerateReview = useMutation({ mutationFn: (note: string) => api.regenerateReview(id, note), onSuccess: refresh });
   const remove = useMutation({
     mutationFn: () => api.remove(id),
     onSuccess: () => {
@@ -111,7 +113,14 @@ export function ProjectPage({ id }: { id: string }) {
           <Preview videoUrl={project.videoUrl} posterUrl={project.posterUrl} timeline={timeline} />
         </div>
         <div>
-          <ArtifactTabs project={project} />
+          <ArtifactTabs
+            project={project}
+            onSaveScript={(script) => saveScript.mutate(script)}
+            onRegenerateReview={(note) => regenerateReview.mutate(note)}
+            savingScript={saveScript.isPending}
+            regeneratingReview={regenerateReview.isPending}
+            onRecordingChanged={refresh}
+          />
         </div>
       </div>
     </main>

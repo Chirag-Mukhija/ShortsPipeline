@@ -2,12 +2,15 @@
 import path from "node:path";
 import type { AssetsArtifact, ResolvedAsset, VoiceArtifact, VoiceScene } from "@clipforge/schema";
 import { highlightCode } from "../../assets/code";
+import { pickGameplay } from "../../assets/gameplay";
 import { pickMusic } from "../../assets/music";
 import { download, findStock } from "../../assets/stock";
-import { paths, relFromData } from "../../config";
+import { absFromData, paths, relFromData } from "../../config";
+import { getRecording } from "../../db/repo";
 import { ensureSfxLibrary } from "../../media/ffmpeg";
 import { speakScene, ttsChain, type SpokenScene } from "../../tts";
 import type { TtsProvider } from "../../tts/types";
+import { alignRecordedScene } from "../../tts/whisperAlign";
 import type { StepContext } from "../context";
 import { errorMessage } from "../errors";
 
@@ -19,6 +22,17 @@ export async function voiceStep(ctx: StepContext): Promise<VoiceArtifact> {
   for (const [index, scene] of script.scenes.entries()) {
     ctx.progress(index / script.scenes.length, `Voicing ${scene.id}`);
     const file = ctx.file("audio", `${scene.id}.mp3`);
+    const recording = getRecording(ctx.project.id, scene.id);
+    if (recording) {
+      try {
+        const aligned = await alignRecordedScene(absFromData(recording.file), file, scene.narration);
+        scenes.push({ id: scene.id, file: relFromData(file), source: "recorded", ...aligned });
+        ctx.log(`${scene.id}: used your recording (aligned with Whisper)`);
+        continue;
+      } catch (error) {
+        ctx.log(`${scene.id}: could not align your recording (${errorMessage(error)}), using the AI voice instead`, "warn");
+      }
+    }
     let spoken: SpokenScene | null = null;
     let lastError: unknown = null;
     const candidates: TtsProvider[] = provider ? [provider] : chain;
@@ -33,18 +47,15 @@ export async function voiceStep(ctx: StepContext): Promise<VoiceArtifact> {
       }
     }
     if (!spoken || !provider) throw new Error(`No voice provider could speak ${scene.id}: ${errorMessage(lastError)}`);
-    scenes.push({
-      id: scene.id,
-      file: relFromData(file),
-      durationMs: spoken.durationMs,
-      speechEndMs: spoken.speechEndMs,
-      words: spoken.words,
-    });
+    scenes.push({ id: scene.id, file: relFromData(file), source: "tts", ...spoken });
   }
-  if (!provider) throw new Error("The script has no scenes to voice");
+  const recordedCount = scenes.filter((scene) => scene.source === "recorded").length;
   const totalMs = scenes.reduce((sum, scene) => sum + scene.speechEndMs, 0);
-  ctx.log(`Voiced ${scenes.length} scenes with ${provider.id} (${provider.voice}), ~${(totalMs / 1000).toFixed(1)}s of speech`);
-  return { provider: provider.id, voice: provider.voice, scenes, totalMs };
+  const voiceLabel = provider ? `${provider.id} (${provider.voice})` : "your recordings only";
+  ctx.log(
+    `Voiced ${scenes.length} scenes${recordedCount ? `, ${recordedCount} in your own voice` : ""} with ${voiceLabel}, ~${(totalMs / 1000).toFixed(1)}s of speech`,
+  );
+  return { provider: provider?.id ?? "recorded", voice: provider?.voice ?? "", scenes, totalMs };
 }
 
 export async function assetsStep(ctx: StepContext): Promise<AssetsArtifact> {
@@ -77,5 +88,7 @@ export async function assetsStep(ctx: StepContext): Promise<AssetsArtifact> {
   }
   const music = pickMusic(ctx.project.id);
   ctx.log(music ? `Music: ${path.basename(music.src)}` : "No tracks in data/library/music, so the mix is voice plus SFX");
-  return { media, code, music };
+  const background = await pickGameplay(ctx.project.id);
+  if (background) ctx.log(`Background: ${path.basename(background.src)} (split-screen layout)`);
+  return { media, code, music, background };
 }

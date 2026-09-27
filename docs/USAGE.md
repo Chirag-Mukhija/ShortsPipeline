@@ -15,6 +15,7 @@ How to install ClipForge, make and publish shorts, run it hands-off, configure i
 | A writer, one of: the **Claude Code CLI, logged in** (default, no key needed), or an Anthropic / Gemini / OpenAI API key | Writes angles, scripts, storyboards and titles | `claude -p "hi"` answers |
 | Internet | Edge neural voice, Google Fonts, the one-time headless Chrome download (about 100 MB) | |
 | About 1 GB of free disk, plus about 25 MB per short | `node_modules` is about 570 MB; each rendered short is 20–25 MB | `df -h` |
+| *Optional, only for recording your own voice:* `git` and a C compiler | The first recorded scene builds a small offline speech-recognition tool from source (once, then cached), plus about 140 MB for its default model | `git --version`; on macOS, `xcode-select --install` if needed |
 
 > The Claude Code CLI uses your Claude plan's usage, about 6 calls per short. Nothing is billed per token, and the budget meter shows ₹0 for it.
 
@@ -40,6 +41,7 @@ This starts the server on port 4310 and the studio on port 5173. Open **http://l
 | Pick the angle | 30–40 s | 4 hook ideas; the best one is chosen |
 | Write the script | 25–45 s | 5–9 scenes, 110–165 words |
 | Critic pass | 1–2 min | Scores, the fixes it made, the final script |
+| **⏸ Your review** | until you act | Paused. Edit any scene, or leave a note and regenerate — see below |
 | Storyboard | 40–50 s | One animation template per scene |
 | Voiceover | 15 s | Indian-English voice per scene |
 | Gather assets | under 1 s (longer with stock footage) | Code colors, footage, music |
@@ -72,14 +74,27 @@ It prints each step as it happens and ends with the path to the video and the ex
 - **Log:** everything the pipeline did and decided, including the critic's fixes and any warnings.
 - **Preview:** *Rendered MP4* (the real file, with a Download link) or *Live preview*, the same animation played live in the browser from the timeline. It works before rendering finishes.
 - **Tabs:**
-  - *Script:* the final narration per scene with its spoken length, plus what the critic fixed.
+  - *Script:* the final narration per scene with its spoken length, plus what the critic fixed. Editable while paused for review (see below); read-only after you approve.
   - *Storyboard:* the template and on-screen content for each scene.
   - *Publish:* title options, description, tags and Instagram caption, each with a Copy button.
   - *Angles:* all four hooks that were considered.
 - **Controls:**
+  - *Approve & continue* appears while a project is paused; moves it on to the next step.
   - *Retry failed step* resumes from the step that failed.
   - *Re-run from…* redoes one step and everything after it (see section 9).
   - *Delete* removes the project and its working files.
+
+### The review checkpoint
+
+Every new short pauses once, right after the critic pass, before storyboard, voice and render run. On the **Script** tab you can:
+
+- **Edit any scene directly.** Each narration line is a text box; your edit saves the moment you click away. Nothing else re-runs — you're just fixing the text.
+- **Leave a note and regenerate.** Type something like *"make scene 3 funnier"* or *"the hook is weak, lead with the cost instead"* and click **Regenerate with note**. The critic re-runs, builds on whatever's currently there (including edits you already made — it never reverts to the very first draft), and treats your note as a firm instruction.
+- **Approve & continue** when you're happy, from the button above the pipeline list. Everything after that runs on its own again.
+
+`pnpm make` pauses the same way — it prints a link to the studio and exits once the short reaches this point, so it never hangs waiting for you. Autopilot-started shorts pause too; approve them from the studio whenever you next check in.
+
+To skip this pause for a specific short, create it with `"mode": "auto"` (`POST /api/projects`, or the idea backlog's `Add` + a direct API call) — there's no studio toggle for it yet, since the point of the checkpoint is that it's on by default.
 
 ## 5. Publishing a finished short
 
@@ -146,6 +161,7 @@ Every 10 minutes the server checks whether that many hours have passed since aut
 | `TTS_VOICE` | `en-IN-PrabhatNeural` | Also `en-IN-NeerjaNeural`, `en-IN-NeerjaExpressiveNeural` |
 | `TTS_RATE` | `+15%` | Speaking speed |
 | `PAUSE_MAX_MS` | `300` | Longest pause allowed inside a scene; longer pauses are trimmed to this |
+| `WHISPER_MODEL` | `base.en` | Accuracy/size tradeoff for aligning your own recordings: `tiny.en`, `base.en`, `small.en`, `medium.en` |
 | `AZURE_SPEECH_KEY` / `AZURE_SPEECH_REGION` | – / `centralindia` | Official Azure voice (same voices, free tier of 0.5M characters a month) |
 | `SAY_VOICE` | `Aman` | macOS offline fallback voice (`Aman`, `Rishi`, `Tara`) |
 | `PEXELS_API_KEY`, `PIXABAY_API_KEY` | – | Enable real stock footage (free keys) |
@@ -156,11 +172,23 @@ Every 10 minutes the server checks whether that many hours have passed since aut
 
 Restart the server after changing `.env`.
 
+**Visual variety.** No setting needed: every short gets one of 5 built-in dark palettes (amber, cyan, magenta, emerald, crimson), picked deterministically from the project so consecutive shorts don't repeat. See [PIPELINE.md](PIPELINE.md) if you want to add or tweak a palette.
+
+**Background gameplay.** Drop your own legally-sourced video clips (things you own the rights to — recorded yourself, or licensed; not ripped footage of someone else's game) into `data/library/gameplay/` (`.mp4`, `.mov`, `.webm` or `.mkv`). Once at least one clip is there, every new short automatically switches to a split-screen layout: the explainer content plays in the top ~60% of the frame, and a clip loops muted in the bottom ~40%. Leave the folder empty to keep the full-screen layout.
+
 ## 8. Choosing the writer and the voice
 
 **Writer.** The default runs the `claude` CLI headlessly with **no access to tools, MCP servers, or your personal Claude Code settings and hooks**. The alias `opus` currently resolves to `claude-opus-5`. To pin a specific model, use its full ID, for example `CLAUDE_CLI_MODEL=claude-opus-5-5`. With an API provider, spend is tracked per call and the pipeline stops at `MONTHLY_BUDGET_INR`.
 
-**Voice.** Microsoft Edge's neural voices are free and need no key, but the endpoint is **unofficial**, so it could change without notice. If it fails, the pipeline automatically tries Azure (when a key is set) and then macOS `say`, and logs which voice was used. One provider is used for the whole video, so voices never switch mid-short.
+**Voice.** Microsoft Edge's neural voices are free and need no key, but the endpoint is **unofficial**, so it could change without notice. If it fails, the pipeline automatically tries Azure (when a key is set) and then macOS `say`, and logs which voice was used. One provider is used for the whole video, so voices never switch mid-short — except for scenes where you've recorded your own voice (below), which always use your recording.
+
+**Recording your own voice.** On the **Script** tab, every scene has a small recorder: click **Record** to use your microphone, or **Upload file** to use an existing clip. This works at any pipeline stage, not just while paused for review, and it's entirely optional per scene — record just the ones you care about and the AI voice fills in the rest of that same video.
+
+- Click **Stop** to end the recording; it uploads automatically and the badge changes from "AI voice" to "Your voice · Ns".
+- **Re-record** replaces the previous take. **Use AI voice instead** deletes it and reverts that scene to TTS.
+- Nothing re-syncs immediately — recording is independent of the pipeline. To hear it in the final video, use **Re-run from… → Voiceover** (or approve past the review checkpoint if you're recording before it).
+- The first time any scene uses a recording, ClipForge downloads a small offline speech-recognition model (Whisper, `base.en` by default, about 140 MB, one-time and free) to line up your words with the on-screen animations — the same word-anchored cue system the AI voice uses. This needs internet once; after that it runs fully offline. If alignment fails for any reason, that scene quietly falls back to the AI voice and a warning is logged — it never fails the whole render.
+- Set `WHISPER_MODEL` in `.env` for better accuracy at the cost of size/speed: `tiny.en` (fastest, least accurate) through `medium.en` (slowest, most accurate). `base.en` is a good default since you're reading the exact on-screen script, not free-speaking.
 
 ## 9. Fixing or improving a short
 
@@ -184,13 +212,15 @@ Every step's output is saved, so you can redo just part of a video from **Re-run
 ```
 data/
   clipforge.db              database: projects, step outputs, jobs, logs, spend
-  projects/<id>/audio/      voice clip per scene
+  projects/<id>/audio/      voice clip per scene (audio/recorded/ holds your own uploads)
   projects/<id>/assets/     downloaded stock footage
   projects/<id>/renders/    final.mp4 and poster.jpg
   exports/<date-title-id>/  ready-to-post folders (hard-linked, no extra space)
   library/sfx/              generated sound effects
   library/music/            drop your own royalty-free tracks here
+  library/gameplay/         drop your own legally-sourced background clips here
   cache/bundle/             compiled video templates
+  cache/whisper/            the Whisper binary and model, downloaded once the first time you record a scene
   secrets/youtube.json      YouTube login (never served over HTTP)
 ```
 
@@ -218,6 +248,8 @@ This builds the studio and serves everything from one server at **http://localho
 | Studio shows an error card | Click *Try again*; if it persists, hard-refresh the page. Details are in the browser console. |
 | Port already in use | Another ClipForge is running, or change `SERVER_PORT`. |
 | Stock scenes show an icon card instead of footage | No stock keys are set, or nothing matched the search. Add `PEXELS_API_KEY`, then re-run from *Gather assets*. |
+| "Record" does nothing, or shows a permission message | The browser needs microphone access for the studio's site. Check your browser's site settings and allow it. |
+| A recorded scene still used the AI voice | Check the log for a `could not align your recording` warning — it happens if Whisper's first-time install failed (e.g. no internet, or `git`/a C compiler isn't available) or the recording had no clear speech. Fix the cause and re-run from *Voiceover*. |
 | YouTube upload fails with 401/403 | The login expired (the consent screen is still in "Testing") or the API isn't enabled. Reconnect from the chip. |
 
 ## 13. For development

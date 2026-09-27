@@ -7,14 +7,14 @@ import { StepError } from "./errors";
 import { emit } from "./events";
 import { laneFor } from "./registry";
 
-export function startProject(id: string, from: Step = STEPS[0]): void {
+export function startProject(id: string, from: Step = STEPS[0], feedbackNote?: string): void {
   const project = getProject(id);
   if (!project) throw new StepError("Project not found", false);
   if (activeJob(id)?.status === "running") {
     throw new StepError("A step is running right now; wait for it to finish before re-running", false);
   }
   cancelQueuedJobs(id);
-  enqueueJob(id, from, laneFor(from));
+  enqueueJob(id, from, laneFor(from), 0, feedbackNote);
   updateProject(id, { status: "queued", currentStep: from, error: null });
   emit({ type: "project", projectId: id });
 }

@@ -137,6 +137,8 @@ function buildSample(): Timeline {
     captions: buildCaptionPages(allWords),
     sfx: [],
     music: null,
+    theme: { palette: "amberBlack" },
+    background: null,
   };
 }
 

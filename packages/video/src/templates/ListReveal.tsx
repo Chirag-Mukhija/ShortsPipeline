@@ -2,13 +2,15 @@
 import type { ListRevealProps } from "@clipforge/schema";
 import type { FC } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
-import { alpha, colors } from "../brand";
+import { alpha } from "../brand";
+import { useTheme } from "../ThemeContext";
 import { Glyph } from "../components/Glyph";
 import { fonts } from "../fonts";
 import { SPRING_POP, cueFrames, fitFontSize, springAt } from "../lib/anim";
 import type { TemplateProps } from "./types";
 
 export const ListReveal: FC<TemplateProps<ListRevealProps>> = ({ props, cues, durationInFrames }) => {
+  const { palette, layout } = useTheme();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const items = props.items.slice(0, 5);
@@ -20,14 +22,17 @@ export const ListReveal: FC<TemplateProps<ListRevealProps>> = ({ props, cues, du
   );
   const visible = appearAt.filter((at) => frame >= at).length;
   const latest = appearAt.reduce((best, at, i) => (frame >= at && at >= (appearAt[best] ?? -1) ? i : best), -1);
-  const rowGap = Math.min(170, 720 / items.length);
+  // Decision: rows anchor 160px below the content top (room for the title) and budget the rest of the content
+  // zone minus a 40px bottom buffer, so this scales down cleanly in the shorter gameplay-split content band.
+  const rowsTop = layout.contentTop + 160;
+  const rowGap = Math.min(170, (layout.contentBottom - rowsTop - 40) / items.length);
   const titleIn = springAt(frame, fps, 0, SPRING_POP);
   return (
     <AbsoluteFill>
       <div
         style={{
           position: "absolute",
-          top: 236,
+          top: layout.contentTop + 26,
           left: 72,
           right: 72,
           textAlign: "center",
@@ -54,15 +59,15 @@ export const ListReveal: FC<TemplateProps<ListRevealProps>> = ({ props, cues, du
               position: "absolute",
               left: 72,
               width: 936,
-              top: 370 + i * rowGap,
+              top: rowsTop + i * rowGap,
               height: rowGap - 22,
               display: "flex",
               alignItems: "center",
               gap: 28,
               padding: "0 30px",
               borderRadius: 28,
-              background: isLatest ? alpha(colors.accent, 0.12) : colors.surface,
-              border: `3px solid ${isLatest ? colors.accent : colors.line}`,
+              background: isLatest ? alpha(palette.accent, 0.12) : palette.surface,
+              border: `3px solid ${isLatest ? palette.accent : palette.line}`,
               opacity: Math.min(1, s * 1.5) * (isLatest ? 1 : 0.72),
               transform: `translateX(${(1 - s) * 120}px) scale(${isLatest ? 1.02 : 1})`,
             }}
@@ -76,16 +81,16 @@ export const ListReveal: FC<TemplateProps<ListRevealProps>> = ({ props, cues, du
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                background: props.numbered ? colors.accent : colors.surfaceHigh,
-                color: colors.accentInk,
+                background: props.numbered ? palette.accent : palette.surfaceHigh,
+                color: palette.accentInk,
                 fontFamily: fonts.display,
                 fontWeight: 800,
                 fontSize: 48,
               }}
             >
-              {props.numbered ? i + 1 : <Glyph icon={item.icon ?? "lucide:sparkles"} size={52} color={colors.accent} />}
+              {props.numbered ? i + 1 : <Glyph icon={item.icon ?? "lucide:sparkles"} size={52} color={palette.accent} />}
             </div>
-            <div style={{ fontFamily: fonts.body, fontWeight: 700, fontSize: 46, lineHeight: 1.15, color: colors.text }}>
+            <div style={{ fontFamily: fonts.body, fontWeight: 700, fontSize: 46, lineHeight: 1.15, color: palette.text }}>
               {item.text}
             </div>
           </div>

@@ -5,11 +5,12 @@ import {
   type LogView,
   type ProjectDetail,
   type ProjectSummary,
+  type RecordingView,
   type RenderArtifact,
 } from "@clipforge/schema";
 import { fileUrl } from "../config";
-import { activeJob, latestArtifact, latestArtifacts, listJobs, listLogs, projectSpendInr } from "../db/repo";
-import type { JobRow, LogRow, ProjectRow } from "../db/schema";
+import { activeJob, latestArtifact, latestArtifacts, listJobs, listLogs, listRecordings, projectSpendInr } from "../db/repo";
+import type { JobRow, LogRow, ProjectRow, RecordingRow } from "../db/schema";
 
 export function toLogView(row: LogRow): LogView {
   return { id: row.id, step: row.step, level: row.level, message: row.message, createdAt: row.createdAt };
@@ -57,6 +58,10 @@ export function projectSummary(row: ProjectRow, render?: RenderArtifact): Projec
   };
 }
 
+function toRecordingView(row: RecordingRow): RecordingView {
+  return { sceneId: row.sceneId, durationMs: row.durationMs, createdAt: row.createdAt };
+}
+
 export function projectDetail(row: ProjectRow): ProjectDetail {
   const artifacts = latestArtifacts(row.id);
   return {
@@ -65,5 +70,6 @@ export function projectDetail(row: ProjectRow): ProjectDetail {
     jobs: listJobs(row.id).map(toJobView),
     logs: listLogs(row.id).map(toLogView),
     spendInr: projectSpendInr(row.id),
+    recordings: listRecordings(row.id).map(toRecordingView),
   };
 }

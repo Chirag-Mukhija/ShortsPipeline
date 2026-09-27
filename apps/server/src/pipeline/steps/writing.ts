@@ -13,7 +13,7 @@ import {
 import { checkAngles, checkScript, checkStoryboard, scriptWordCount } from "../../agents/checks";
 import { anglePrompt, reviewPrompt, scriptPrompt, storyboardPrompt } from "../../agents/prompts";
 import { stockProviders } from "../../assets/stock";
-import { updateProject } from "../../db/repo";
+import { latestArtifact, updateProject } from "../../db/repo";
 import { generateStructured } from "../../llm";
 import type { StepContext } from "../context";
 
@@ -50,8 +50,13 @@ export async function scriptStep(ctx: StepContext): Promise<Script> {
 }
 
 export async function reviewStep(ctx: StepContext): Promise<Review> {
+  // Decision: re-critiquing builds on the most recent script — the creator's direct edits, or a previous critic
+  // pass, if either exists — never silently discarding them by starting over from the very first draft.
+  const draft = latestArtifact<Review>(ctx.project.id, "review")?.script ?? ctx.need("script");
+  const feedbackNote = ctx.job.feedbackNote ?? undefined;
+  if (feedbackNote) ctx.log(`Regenerating with your note: "${feedbackNote}"`);
   const review = await generateStructured({
-    ...reviewPrompt(ctx.project.topic, ctx.need("script")),
+    ...reviewPrompt(ctx.project.topic, draft, feedbackNote),
     schema: ReviewSchema,
     schemaName: "review",
     projectId: ctx.project.id,

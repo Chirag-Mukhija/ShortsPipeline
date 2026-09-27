@@ -4,13 +4,16 @@ import type {
   Metadata,
   ProjectDetail,
   PublishArtifact,
+  RecordingView,
   Review,
+  Script,
   Storyboard,
   StoryboardScene,
   VoiceArtifact,
 } from "@clipforge/schema";
 import { useState, type ReactNode } from "react";
-import { Chip, CopyButton, Empty } from "./ui";
+import { Button, Chip, CopyButton, Empty } from "./ui";
+import { SceneRecorder } from "./SceneRecorder";
 
 type Tab = "script" | "storyboard" | "publish" | "angles";
 
@@ -26,11 +29,69 @@ function Field({ label, text, children }: { label: string; text?: string; childr
   );
 }
 
-function ScriptTab({ review, voice }: { review?: Review; voice?: VoiceArtifact }) {
+function FeedbackNote({ onRegenerate, pending }: { onRegenerate: (note: string) => void; pending: boolean }) {
+  const [note, setNote] = useState("");
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-3">
+      <span className="text-xs font-semibold uppercase tracking-wider text-dim">Or leave a note and regenerate</span>
+      <textarea
+        value={note}
+        onChange={(event) => setNote(event.target.value)}
+        placeholder="e.g. make scene 3 funnier, the hook is weak, cut the third fact"
+        rows={2}
+        className="w-full resize-none rounded-lg border border-line bg-bg px-3 py-2 text-sm text-ink outline-none placeholder:text-dim focus:border-accent"
+      />
+      <Button
+        tone="primary"
+        className="self-end !px-3 !py-1 text-xs"
+        disabled={pending || note.trim().length === 0}
+        onClick={() => {
+          onRegenerate(note.trim());
+          setNote("");
+        }}
+      >
+        {pending ? "Regenerating…" : "Regenerate with note"}
+      </Button>
+    </div>
+  );
+}
+
+function ScriptTab({
+  projectId,
+  review,
+  voice,
+  recordings,
+  editable,
+  onSaveScript,
+  onRegenerateReview,
+  savingScript,
+  regeneratingReview,
+  onRecordingChanged,
+}: {
+  projectId: string;
+  review?: Review;
+  voice?: VoiceArtifact;
+  recordings: RecordingView[];
+  editable: boolean;
+  onSaveScript: (script: Script) => void;
+  onRegenerateReview: (note: string) => void;
+  savingScript: boolean;
+  regeneratingReview: boolean;
+  onRecordingChanged: () => void;
+}) {
   if (!review) return <Empty>The final script appears after the critic pass.</Empty>;
   const scores = Object.entries(review.scores);
+  const saveNarration = (sceneId: string, narration: string) => {
+    onSaveScript({ ...review.script, scenes: review.script.scenes.map((s) => (s.id === sceneId ? { ...s, narration } : s)) });
+  };
   return (
     <div className="flex flex-col gap-4">
+      {editable ? (
+        <p className="rounded-xl border border-accent/40 bg-accent/5 px-3 py-2 text-xs text-ink">
+          Paused for your review. Edit any scene below (saves when you click away), or leave a note and regenerate — then
+          use <span className="font-semibold">Approve &amp; continue</span> above when you're happy with it.
+        </p>
+      ) : null}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs text-dim">Critic scored the draft:</span>
         {scores.map(([name, score]) => (
@@ -38,22 +99,41 @@ function ScriptTab({ review, voice }: { review?: Review; voice?: VoiceArtifact }
             {name} {score}/10
           </Chip>
         ))}
+        {savingScript ? <span className="text-xs text-dim">Saving…</span> : null}
       </div>
       <ol className="flex flex-col gap-3">
         {review.script.scenes.map((scene) => {
           const spoken = voice?.scenes.find((s) => s.id === scene.id);
+          const recording = recordings.find((r) => r.sceneId === scene.id);
           return (
             <li key={scene.id} className="rounded-xl border border-line bg-surface p-3">
               <div className="mb-1 flex items-center gap-2 text-xs text-dim">
                 <span className="rounded-md bg-surface-hi px-1.5 py-0.5 font-mono text-muted">{scene.id}</span>
-                {spoken ? <span>{(spoken.speechEndMs / 1000).toFixed(1)}s</span> : null}
+                {spoken ? <span>{(spoken.speechEndMs / 1000).toFixed(1)}s{spoken.source === "recorded" ? " · used your voice" : ""}</span> : null}
               </div>
-              <p className="text-sm leading-relaxed">{scene.narration}</p>
+              {editable ? (
+                <textarea
+                  key={`${scene.id}:${scene.narration}`}
+                  defaultValue={scene.narration}
+                  rows={2}
+                  onBlur={(event) => {
+                    const value = event.target.value.trim();
+                    if (value && value !== scene.narration) saveNarration(scene.id, value);
+                  }}
+                  className="w-full resize-none rounded-lg border border-line bg-bg px-2 py-1.5 text-sm leading-relaxed text-ink outline-none focus:border-accent"
+                />
+              ) : (
+                <p className="text-sm leading-relaxed">{scene.narration}</p>
+              )}
               <p className="mt-1 text-xs text-dim">{scene.visual}</p>
+              <div className="mt-2 border-t border-line pt-2">
+                <SceneRecorder projectId={projectId} sceneId={scene.id} recording={recording} onChanged={onRecordingChanged} />
+              </div>
             </li>
           );
         })}
       </ol>
+      {editable ? <FeedbackNote onRegenerate={onRegenerateReview} pending={regeneratingReview} /> : null}
       {review.issues.length > 0 ? (
         <details className="text-sm text-muted">
           <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-dim">Critic fixed {review.issues.length} issues</summary>
@@ -160,9 +240,24 @@ function AnglesTab({ plan }: { plan?: AnglePlan }) {
   );
 }
 
-export function ArtifactTabs({ project }: { project: ProjectDetail }) {
+export function ArtifactTabs({
+  project,
+  onSaveScript,
+  onRegenerateReview,
+  savingScript,
+  regeneratingReview,
+  onRecordingChanged,
+}: {
+  project: ProjectDetail;
+  onSaveScript: (script: Script) => void;
+  onRegenerateReview: (note: string) => void;
+  savingScript: boolean;
+  regeneratingReview: boolean;
+  onRecordingChanged: () => void;
+}) {
   const [tab, setTab] = useState<Tab>("script");
   const a = project.artifacts;
+  const editableScript = project.status === "paused" && project.currentStep === "review";
   const tabs: { id: Tab; label: string }[] = [
     { id: "script", label: "Script" },
     { id: "storyboard", label: "Storyboard" },
@@ -182,7 +277,20 @@ export function ArtifactTabs({ project }: { project: ProjectDetail }) {
           </button>
         ))}
       </div>
-      {tab === "script" ? <ScriptTab review={a.review as Review | undefined} voice={a.voice as VoiceArtifact | undefined} /> : null}
+      {tab === "script" ? (
+        <ScriptTab
+          projectId={project.id}
+          review={a.review as Review | undefined}
+          voice={a.voice as VoiceArtifact | undefined}
+          recordings={project.recordings}
+          editable={editableScript}
+          onSaveScript={onSaveScript}
+          onRegenerateReview={onRegenerateReview}
+          savingScript={savingScript}
+          regeneratingReview={regeneratingReview}
+          onRecordingChanged={onRecordingChanged}
+        />
+      ) : null}
       {tab === "storyboard" ? <StoryboardTab storyboard={a.storyboard as Storyboard | undefined} /> : null}
       {tab === "publish" ? <PublishTab metadata={a.metadata as Metadata | undefined} publish={a.publish as PublishArtifact | undefined} /> : null}
       {tab === "angles" ? <AnglesTab plan={a.angle as AnglePlan | undefined} /> : null}

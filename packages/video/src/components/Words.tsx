@@ -1,7 +1,8 @@
 // Renders a phrase word by word with optional staggered pop-in and accent, marker-underlined highlights.
 import type { FC } from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
-import { alpha, colors } from "../brand";
+import { alpha } from "../brand";
+import { useTheme } from "../ThemeContext";
 import { SPRING_POP, SPRING_SOFT, isHighlighted, springAt } from "../lib/anim";
 
 export const Words: FC<{
@@ -11,6 +12,7 @@ export const Words: FC<{
   stagger: number;
   animate: boolean;
 }> = ({ text, highlight, start, stagger, animate }) => {
+  const { palette } = useTheme();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const words = text.split(/\s+/).filter(Boolean);
@@ -29,7 +31,7 @@ export const Words: FC<{
               position: "relative",
               isolation: "isolate",
               marginRight: i === words.length - 1 ? 0 : "0.24em",
-              color: highlighted ? colors.accent : colors.text,
+              color: highlighted ? palette.accent : palette.text,
               opacity: Math.min(1, s * 1.4),
               transform: `translateY(${(1 - s) * 44}px) scale(${0.6 + 0.4 * s})`,
             }}
@@ -44,7 +46,7 @@ export const Words: FC<{
                   bottom: "0.04em",
                   height: "0.2em",
                   borderRadius: 10,
-                  background: alpha(colors.accent, 0.32),
+                  background: alpha(palette.accent, 0.32),
                   transform: `scaleX(${underline})`,
                   transformOrigin: "left center",
                   zIndex: -1,

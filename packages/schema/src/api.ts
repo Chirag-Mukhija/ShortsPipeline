@@ -37,11 +37,14 @@ export type LogView = {
   createdAt: string;
 };
 
+export type RecordingView = { sceneId: string; durationMs: number; createdAt: string };
+
 export type ProjectDetail = ProjectSummary & {
   artifacts: Partial<Record<Step, unknown>>;
   jobs: JobView[];
   logs: LogView[];
   spendInr: number;
+  recordings: RecordingView[];
 };
 
 export type SystemStatus = {

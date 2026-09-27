@@ -20,6 +20,7 @@ import { buildTimeline } from "../timeline";
 
 export async function timelineStep(ctx: StepContext): Promise<Timeline> {
   const timeline = buildTimeline({
+    projectId: ctx.project.id,
     script: ctx.need("review").script,
     storyboard: ctx.need("storyboard"),
     voice: ctx.need("voice"),

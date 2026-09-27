@@ -2,7 +2,8 @@
 import type { StatCounterProps } from "@clipforge/schema";
 import type { FC } from "react";
 import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { alpha, colors } from "../brand";
+import { alpha } from "../brand";
+import { useTheme } from "../ThemeContext";
 import { ContentArea } from "../components/ContentArea";
 import { Glyph } from "../components/Glyph";
 import { fonts } from "../fonts";
@@ -14,6 +15,7 @@ const COUNT_FRAMES = 34;
 const RAYS = 12;
 
 export const StatCounter: FC<TemplateProps<StatCounterProps>> = ({ props, cues }) => {
+  const { palette } = useTheme();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const progress = interpolate(frame, [COUNT_START, COUNT_START + COUNT_FRAMES], [0, 1], {
@@ -33,7 +35,7 @@ export const StatCounter: FC<TemplateProps<StatCounterProps>> = ({ props, cues }
     <ContentArea style={{ gap: 26 }}>
       {props.icon ? (
         <div style={{ transform: `scale(${iconIn})` }}>
-          <Glyph icon={props.icon} size={140} color={colors.accent} />
+          <Glyph icon={props.icon} size={140} color={palette.accent} />
         </div>
       ) : null}
       <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -49,7 +51,7 @@ export const StatCounter: FC<TemplateProps<StatCounterProps>> = ({ props, cues }
                     width: 90,
                     height: 10,
                     borderRadius: 5,
-                    background: colors.accent,
+                    background: palette.accent,
                     opacity: 1 - burst,
                     transform: `translate(${Math.cos(angle) * radius}px, ${Math.sin(angle) * radius * 0.6}px) rotate(${angle}rad)`,
                   }}
@@ -64,9 +66,9 @@ export const StatCounter: FC<TemplateProps<StatCounterProps>> = ({ props, cues }
             fontSize,
             letterSpacing: -4,
             lineHeight: 1,
-            color: colors.accent,
+            color: palette.accent,
             transform: `scale(${pulse})`,
-            textShadow: `0 0 60px ${alpha(colors.accent, 0.35)}`,
+            textShadow: `0 0 60px ${alpha(palette.accent, 0.35)}`,
             whiteSpace: "nowrap",
           }}
         >
@@ -82,7 +84,7 @@ export const StatCounter: FC<TemplateProps<StatCounterProps>> = ({ props, cues }
           fontSize: 56,
           textAlign: "center",
           maxWidth: 900,
-          color: colors.text,
+          color: palette.text,
           opacity: labelIn,
           transform: `translateY(${(1 - labelIn) * 30}px)`,
         }}

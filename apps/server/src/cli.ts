@@ -71,6 +71,11 @@ for (;;) {
       if (publish?.youtube) console.log(`YouTube: ${publish.youtube.url} (${publish.youtube.privacy})`);
       process.exit(0);
     }
+    if (detail.status === "paused") {
+      console.log(`\nPaused for your review after "${detail.title ?? topic}"'s script.`);
+      console.log(`Open the studio to edit it, leave a note, or approve: http://localhost:5173/#/p/${detail.id}`);
+      process.exit(0);
+    }
     console.error(`\nStopped with status "${detail.status}": ${detail.error ?? ""}`);
     process.exit(1);
   }

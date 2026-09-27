@@ -29,6 +29,9 @@ importers:
       '@remotion/bundler':
         specifier: 4.0.529
         version: 4.0.529(postcss@8.5.28)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@remotion/install-whisper-cpp':
+        specifier: 4.0.529
+        version: 4.0.529
       '@remotion/renderer':
         specifier: 4.0.529
         version: 4.0.529(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -1012,6 +1015,9 @@ packages:
 
   '@remotion/google-fonts@4.0.529':
     resolution: {integrity: sha512-wU4mKK6gYVPk1ms0/x7y/yUfUxXynxTXjcTNZp67z73oL5J5r0MYzTVi3pl9zB0NG4P4trXKt81N9VYpMSJ6+A==}
+
+  '@remotion/install-whisper-cpp@4.0.529':
+    resolution: {integrity: sha512-PVKQ5RrK1zGniRWI4zG1uKfrGXLspaecm8s0jsM5biyoFvDapAqIE/53jFaUABwEvFp+gUkKmruAOGJVK09yEA==}
 
   '@remotion/licensing@4.0.529':
     resolution: {integrity: sha512-+hVV68ouCdjeNGKQOdDueH1OZej5biXGXLr9ADdiJr7MEl5l9mWPHa2Z9z45TwBHihMe5wKOQ5fmXHc+TBOjBg==}
@@ -3805,6 +3811,10 @@ snapshots:
     transitivePeerDependencies:
       - react
       - react-dom
+
+  '@remotion/install-whisper-cpp@4.0.529':
+    dependencies:
+      '@remotion/captions': 4.0.529
 
   '@remotion/licensing@4.0.529': {}
 

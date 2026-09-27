@@ -2,7 +2,8 @@
 import type { CodeToken, ResolvedCodeBlockProps } from "@clipforge/schema";
 import type { FC } from "react";
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { alpha, colors } from "../brand";
+import { alpha } from "../brand";
+import { useTheme } from "../ThemeContext";
 import { ContentArea } from "../components/ContentArea";
 import { fonts } from "../fonts";
 import { CLAMP, SPRING_POP, parseTarget, springAt } from "../lib/anim";
@@ -11,12 +12,13 @@ import type { TemplateProps } from "./types";
 const DOTS = ["#FF5F57", "#FEBC2E", "#28C840"];
 
 export const CodeBlock: FC<TemplateProps<ResolvedCodeBlockProps>> = ({ props, cues, durationInFrames }) => {
+  const { palette } = useTheme();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const lines: CodeToken[][] =
     props.tokens && props.tokens.length > 0
       ? props.tokens
-      : props.code.split("\n").map((line) => [{ text: line, color: colors.text }]);
+      : props.code.split("\n").map((line) => [{ text: line, color: palette.text }]);
   const lengths = lines.map((line) => line.reduce((sum, token) => sum + token.text.length, 0));
   const total = lengths.reduce((a, b) => a + b, 0);
   const longest = Math.max(10, ...lengths);
@@ -49,8 +51,8 @@ export const CodeBlock: FC<TemplateProps<ResolvedCodeBlockProps>> = ({ props, cu
           width: 960,
           borderRadius: 30,
           overflow: "hidden",
-          background: props.background || colors.codeBg,
-          border: `2px solid ${colors.line}`,
+          background: props.background || palette.codeBg,
+          border: `2px solid ${palette.line}`,
           boxShadow: "0 40px 90px rgba(0,0,0,0.55)",
           transform: `translateY(${(1 - windowIn) * 60}px) scale(${0.92 + 0.08 * windowIn})`,
           opacity: windowIn,
@@ -64,7 +66,7 @@ export const CodeBlock: FC<TemplateProps<ResolvedCodeBlockProps>> = ({ props, cu
             gap: 14,
             padding: "0 28px",
             background: alpha("#FFFFFF", 0.04),
-            borderBottom: `2px solid ${colors.line}`,
+            borderBottom: `2px solid ${palette.line}`,
           }}
         >
           {DOTS.map((dot) => (
@@ -78,7 +80,7 @@ export const CodeBlock: FC<TemplateProps<ResolvedCodeBlockProps>> = ({ props, cu
               fontFamily: fonts.body,
               fontWeight: 600,
               fontSize: 28,
-              color: colors.muted,
+              color: palette.muted,
             }}
           >
             {props.filename ?? props.language}
@@ -108,11 +110,11 @@ export const CodeBlock: FC<TemplateProps<ResolvedCodeBlockProps>> = ({ props, cu
                   padding: "0 36px",
                   whiteSpace: "pre",
                   opacity: dimmed ? 0.32 : 1,
-                  background: focused ? alpha(colors.accent, 0.12) : "transparent",
-                  boxShadow: focused ? `inset 8px 0 0 ${colors.accent}` : "none",
+                  background: focused ? alpha(palette.accent, 0.12) : "transparent",
+                  boxShadow: focused ? `inset 8px 0 0 ${palette.accent}` : "none",
                 }}
               >
-                <span style={{ color: colors.dim, minWidth: "1.6ch", textAlign: "right" }}>{lineNumber}</span>
+                <span style={{ color: palette.dim, minWidth: "1.6ch", textAlign: "right" }}>{lineNumber}</span>
                 <span>
                   {visible.map((token, j) => (
                     <span key={j} style={{ color: token.color }}>
@@ -127,7 +129,7 @@ export const CodeBlock: FC<TemplateProps<ResolvedCodeBlockProps>> = ({ props, cu
                         height: "1.1em",
                         marginLeft: 2,
                         verticalAlign: "text-bottom",
-                        background: colors.accent,
+                        background: palette.accent,
                       }}
                     />
                   ) : null}

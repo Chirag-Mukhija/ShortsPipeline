@@ -1,10 +1,12 @@
 # ClipForge
 
-A personal, local-first pipeline that turns a topic into a finished vertical tech-explainer short for YouTube Shorts and Instagram Reels. It runs fully automatically, and every step's output is saved so you can inspect it or re-run from any point.
+A personal, local-first pipeline that turns a topic into a finished vertical tech-explainer short for YouTube Shorts and Instagram Reels. It runs on its own from a topic to a rendered video, pauses once for your review right after the script is critiqued, and every step's output is saved so you can inspect or re-run from any point.
 
 ```
-topic → angle → script → critic pass → storyboard → Indian-English voice → assets → synced timeline → render → titles & hashtags → publish/export
+topic → angle → script → critic pass → ⏸ your review → storyboard → Indian-English voice → assets → synced timeline → render → titles & hashtags → publish/export
 ```
+
+Every short also gets one of 5 built-in color palettes, an optional looping split-screen background (drop clips into `data/library/gameplay/`), and lets you record your own voice per scene instead of the AI voice, wherever you want it — see [docs/USAGE.md](docs/USAGE.md).
 
 ## Quick start
 

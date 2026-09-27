@@ -2,7 +2,8 @@
 import type { CompareProps, CompareSide } from "@clipforge/schema";
 import type { FC } from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
-import { alpha, colors, layout } from "../brand";
+import { alpha } from "../brand";
+import { useTheme } from "../ThemeContext";
 import { Glyph } from "../components/Glyph";
 import { fonts } from "../fonts";
 import { SPRING_POP, cueFrames, fitFontSize, springAt } from "../lib/anim";
@@ -16,6 +17,7 @@ const Card: FC<{ side: CompareSide; color: string; appear: number; top: number; 
   height,
   fromLeft,
 }) => {
+  const { palette } = useTheme();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   if (frame < appear) return null;
@@ -29,7 +31,7 @@ const Card: FC<{ side: CompareSide; color: string; appear: number; top: number; 
         width: 936,
         height,
         borderRadius: 34,
-        background: colors.surface,
+        background: palette.surface,
         border: `3px solid ${alpha(color, 0.5)}`,
         boxShadow: `0 24px 60px rgba(0,0,0,0.45), inset 12px 0 0 ${color}`,
         padding: "34px 40px 34px 56px",
@@ -58,7 +60,7 @@ const Card: FC<{ side: CompareSide; color: string; appear: number; top: number; 
               fontFamily: fonts.body,
               fontWeight: 600,
               fontSize: 42,
-              color: colors.text,
+              color: palette.text,
               opacity: p,
               transform: `translateY(${(1 - p) * 24}px)`,
             }}
@@ -77,6 +79,7 @@ function cardHeight(side: CompareSide): number {
 }
 
 export const Compare: FC<TemplateProps<CompareProps>> = ({ props, cues, durationInFrames }) => {
+  const { palette, layout } = useTheme();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const leftHeight = cardHeight(props.left);
@@ -95,8 +98,8 @@ export const Compare: FC<TemplateProps<CompareProps>> = ({ props, cues, duration
   const verdict = springAt(frame, fps, verdictAt, SPRING_POP);
   return (
     <AbsoluteFill>
-      <Card side={props.left} color={colors.blue} appear={leftAt} top={top} height={leftHeight} fromLeft />
-      <Card side={props.right} color={colors.accent} appear={rightAt} top={rightTop} height={rightHeight} fromLeft={false} />
+      <Card side={props.left} color={palette.blue} appear={leftAt} top={top} height={leftHeight} fromLeft />
+      <Card side={props.right} color={palette.accent} appear={rightAt} top={rightTop} height={rightHeight} fromLeft={false} />
       {frame >= rightAt ? (
         <div
           style={{
@@ -106,8 +109,8 @@ export const Compare: FC<TemplateProps<CompareProps>> = ({ props, cues, duration
             width: 116,
             height: 116,
             borderRadius: 58,
-            background: colors.bg,
-            border: `4px solid ${colors.line}`,
+            background: palette.bg,
+            border: `4px solid ${palette.line}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -136,12 +139,12 @@ export const Compare: FC<TemplateProps<CompareProps>> = ({ props, cues, duration
               fontFamily: fonts.body,
               fontWeight: 800,
               fontSize: 40,
-              color: colors.accentInk,
-              background: colors.accent,
+              color: palette.accentInk,
+              background: palette.accent,
               padding: "12px 32px",
               borderRadius: 999,
               transform: `scale(${verdict})`,
-              boxShadow: `0 12px 40px ${alpha(colors.accent, 0.4)}`,
+              boxShadow: `0 12px 40px ${alpha(palette.accent, 0.4)}`,
             }}
           >
             {props.verdict}

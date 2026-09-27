@@ -1,8 +1,10 @@
 // Positions template content inside the platform-safe zone, centered by default.
 import type { CSSProperties, FC, ReactNode } from "react";
-import { layout } from "../brand";
+import { useTheme } from "../ThemeContext";
 
-export const ContentArea: FC<{ children: ReactNode; style?: CSSProperties }> = ({ children, style }) => (
+export const ContentArea: FC<{ children: ReactNode; style?: CSSProperties }> = ({ children, style }) => {
+  const { layout } = useTheme();
+  return (
   <div
     style={{
       position: "absolute",
@@ -19,4 +21,5 @@ export const ContentArea: FC<{ children: ReactNode; style?: CSSProperties }> = (
   >
     {children}
   </div>
-);
+  );
+};

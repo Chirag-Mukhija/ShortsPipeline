@@ -1,5 +1,6 @@
 // Public surface of the shared schema package.
 export * from "./pipeline";
+export * from "./theme";
 export * from "./content";
 export * from "./templates";
 export * from "./storyboard";

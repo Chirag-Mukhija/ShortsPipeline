@@ -2,7 +2,7 @@
 import type { CaptionPage } from "@clipforge/schema";
 import type { FC } from "react";
 import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { colors, layout } from "../brand";
+import { useTheme } from "../ThemeContext";
 import { fonts } from "../fonts";
 
 function displayText(text: string): string {
@@ -10,6 +10,7 @@ function displayText(text: string): string {
 }
 
 export const Captions: FC<{ pages: CaptionPage[] }> = ({ pages }) => {
+  const { palette, layout } = useTheme();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const ms = (frame / fps) * 1000;
@@ -52,7 +53,7 @@ export const Captions: FC<{ pages: CaptionPage[] }> = ({ pages }) => {
                 fontSize: 86,
                 lineHeight: 1.08,
                 letterSpacing: -1,
-                color: active ? colors.accent : colors.text,
+                color: active ? palette.accent : palette.text,
                 transform: `scale(${active ? 1.04 : 1})`,
                 WebkitTextStroke: "12px #05070B",
                 paintOrder: "stroke fill",

@@ -2,7 +2,8 @@
 import type { ResolvedMediaProps } from "@clipforge/schema";
 import type { FC } from "react";
 import { AbsoluteFill, Img, OffthreadVideo, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { alpha, colors } from "../brand";
+import { alpha } from "../brand";
+import { useTheme } from "../ThemeContext";
 import { ContentArea } from "../components/ContentArea";
 import { Glyph } from "../components/Glyph";
 import { fonts } from "../fonts";
@@ -10,6 +11,7 @@ import { CLAMP, SPRING_POP, assetUrl, springAt } from "../lib/anim";
 import type { TemplateProps } from "./types";
 
 const Overlay: FC<{ text: string; appear: number }> = ({ text, appear }) => {
+  const { palette } = useTheme();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const s = springAt(frame, fps, appear, SPRING_POP);
@@ -23,8 +25,8 @@ const Overlay: FC<{ text: string; appear: number }> = ({ text, appear }) => {
           lineHeight: 1.04,
           letterSpacing: -2,
           textAlign: "center",
-          color: colors.text,
-          background: alpha(colors.bg, 0.62),
+          color: palette.text,
+          background: alpha(palette.bg, 0.62),
           padding: "18px 34px",
           borderRadius: 28,
           transform: `scale(${0.7 + 0.3 * s})`,
@@ -38,6 +40,7 @@ const Overlay: FC<{ text: string; appear: number }> = ({ text, appear }) => {
 };
 
 export const Media: FC<TemplateProps<ResolvedMediaProps>> = ({ props, durationInFrames, assetBase }) => {
+  const { palette } = useTheme();
   const frame = useCurrentFrame();
   const kenBurns = interpolate(frame, [0, Math.max(1, durationInFrames)], [1.06, 1.16], CLAMP);
   const asset = props.asset;
@@ -72,12 +75,12 @@ export const Media: FC<TemplateProps<ResolvedMediaProps>> = ({ props, durationIn
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: `linear-gradient(145deg, ${alpha(colors.accent, 0.22)}, ${alpha(colors.blue, 0.16)})`,
-          border: `3px solid ${alpha(colors.accent, 0.4)}`,
+          background: `linear-gradient(145deg, ${alpha(palette.accent, 0.22)}, ${alpha(palette.blue, 0.16)})`,
+          border: `3px solid ${alpha(palette.accent, 0.4)}`,
           transform: `scale(${kenBurns}) rotate(${(kenBurns - 1.06) * 30}deg)`,
         }}
       >
-        <Glyph icon={props.icon ?? "lucide:image"} size={230} color={colors.accent} strokeWidth={1.6} />
+        <Glyph icon={props.icon ?? "lucide:image"} size={230} color={palette.accent} strokeWidth={1.6} />
       </div>
       <div
         style={{

@@ -2,7 +2,8 @@
 import type { HookSlamProps } from "@clipforge/schema";
 import type { FC } from "react";
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { alpha, colors } from "../brand";
+import { alpha } from "../brand";
+import { useTheme } from "../ThemeContext";
 import { ContentArea } from "../components/ContentArea";
 import { Glyph } from "../components/Glyph";
 import { Words } from "../components/Words";
@@ -11,6 +12,7 @@ import { SPRING_POP, SPRING_SLAM, fadeIn, fitFontSize, shakeAt, springAt } from 
 import type { TemplateProps } from "./types";
 
 export const HookSlam: FC<TemplateProps<HookSlamProps>> = ({ props }) => {
+  const { palette } = useTheme();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const lines = props.lines.slice(0, 3);
@@ -32,10 +34,10 @@ export const HookSlam: FC<TemplateProps<HookSlamProps>> = ({ props }) => {
           style={{
             transform: `translateY(${(1 - iconIn) * -280}px) rotate(${(1 - iconIn) * -18}deg)`,
             opacity: Math.min(1, iconIn * 2),
-            filter: `drop-shadow(0 18px 40px ${alpha(colors.accent, 0.35)})`,
+            filter: `drop-shadow(0 18px 40px ${alpha(palette.accent, 0.35)})`,
           }}
         >
-          <Glyph icon={props.icon} size={200} color={colors.accent} strokeWidth={1.8} />
+          <Glyph icon={props.icon} size={200} color={palette.accent} strokeWidth={1.8} />
         </div>
       ) : null}
       {props.kicker ? (
@@ -46,8 +48,8 @@ export const HookSlam: FC<TemplateProps<HookSlamProps>> = ({ props }) => {
             fontSize: 40,
             letterSpacing: 4,
             textTransform: "uppercase",
-            color: colors.accentInk,
-            background: colors.accent,
+            color: palette.accentInk,
+            background: palette.accent,
             padding: "10px 28px",
             borderRadius: 999,
             transform: `scale(${kickerIn}) rotate(-2deg)`,

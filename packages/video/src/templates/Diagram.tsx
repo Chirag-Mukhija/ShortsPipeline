@@ -2,7 +2,8 @@
 import type { DiagramEdge, DiagramNode, DiagramProps } from "@clipforge/schema";
 import type { FC } from "react";
 import { AbsoluteFill, Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { alpha, colors, tones } from "../brand";
+import { alpha } from "../brand";
+import { useTheme } from "../ThemeContext";
 import { Glyph } from "../components/Glyph";
 import { fonts } from "../fonts";
 import { CLAMP, SPRING_POP, cueFrames, fitFontSize, parseTarget, pulseAt, springAt } from "../lib/anim";
@@ -15,19 +16,20 @@ type Link = DiagramEdge & { key: string; a: Box; b: Box; appear: number };
 
 const PACKET_FRAMES = 18;
 
-function layoutNodes(nodes: DiagramNode[], hasTitle: boolean): Placement[] {
+// Decision: top/bottom come from the render's layout (full canvas or the gameplay-split top band), so the grid
+// always uses exactly the room available; a title, when present, claims the first ~170px of that room.
+function layoutNodes(nodes: DiagramNode[], hasTitle: boolean, top: number, bottom: number): Placement[] {
   const cols = nodes.map((node) => Math.min(2, Math.max(0, Math.round(node.col))));
   const rows = nodes.map((node) => Math.min(4, Math.max(0, Math.round(node.row))));
   const midCol = (Math.min(...cols) + Math.max(...cols)) / 2;
   // Decision: rows are laid out by rank, so a model that spreads two rows as 0 and 4 still gets full-size nodes.
   const distinctRows = [...new Set(rows)].sort((a, b) => a - b);
   const ranks = rows.map((row) => distinctRows.indexOf(row));
-  const top = hasTitle ? 380 : 250;
-  const bottom = 1100;
+  const gridTop = top + (hasTitle ? 170 : 40);
   const span = distinctRows.length - 1;
-  const rowGap = span === 0 ? 0 : Math.min(300, (bottom - top - 150) / span);
+  const rowGap = span === 0 ? 0 : Math.min(300, (bottom - gridTop - 150) / span);
   const compact = span > 0 && rowGap < 240;
-  const centerY = (top + bottom) / 2;
+  const centerY = (gridTop + bottom) / 2;
   return nodes.map((node, i) => ({
     x: 540 + ((cols[i] ?? 1) - midCol) * 345,
     y: centerY + ((ranks[i] ?? 0) - span / 2) * rowGap,
@@ -60,9 +62,10 @@ function matchesEdge(link: Link, id: string): "forward" | "backward" | null {
 }
 
 export const Diagram: FC<TemplateProps<DiagramProps>> = ({ props, cues }) => {
+  const { palette, tones, layout } = useTheme();
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const geometry = layoutNodes(props.nodes, Boolean(props.title));
+  const geometry = layoutNodes(props.nodes, Boolean(props.title), layout.contentTop, layout.contentBottom - 30);
 
   const nodeReveal = (key: string) =>
     cueFrames(cues, "reveal", (t) => (t.kind === "node" || t.kind === "other") && t.id === key)[0];
@@ -114,7 +117,7 @@ export const Diagram: FC<TemplateProps<DiagramProps>> = ({ props, cues }) => {
         <div
           style={{
             position: "absolute",
-            top: 240,
+            top: layout.contentTop + 30,
             left: 72,
             right: 72,
             textAlign: "center",
@@ -142,7 +145,7 @@ export const Diagram: FC<TemplateProps<DiagramProps>> = ({ props, cues }) => {
           const y = start.y + (end.y - start.y) * progress;
           const angle = Math.atan2(end.y - start.y, end.x - start.x);
           const hot = packets.some((p) => p.link === link && frame >= p.frame && frame <= p.frame + PACKET_FRAMES);
-          const stroke = hot ? colors.accent : alpha(colors.text, 0.42);
+          const stroke = hot ? palette.accent : alpha(palette.text, 0.42);
           const head = [
             end,
             { x: end.x - 28 * Math.cos(angle) + 15 * Math.sin(angle), y: end.y - 28 * Math.sin(angle) - 15 * Math.cos(angle) },
@@ -174,8 +177,8 @@ export const Diagram: FC<TemplateProps<DiagramProps>> = ({ props, cues }) => {
           const cy = from.y + (to.y - from.y) * eased;
           return (
             <g key={`packet-${i}`}>
-              <circle cx={cx} cy={cy} r={34} fill={alpha(colors.accent, 0.22)} />
-              <circle cx={cx} cy={cy} r={16} fill={colors.accent} />
+              <circle cx={cx} cy={cy} r={34} fill={alpha(palette.accent, 0.22)} />
+              <circle cx={cx} cy={cy} r={16} fill={palette.accent} />
             </g>
           );
         })}
@@ -201,9 +204,9 @@ export const Diagram: FC<TemplateProps<DiagramProps>> = ({ props, cues }) => {
               width: box.w,
               height: box.h,
               borderRadius: 30,
-              background: active ? alpha(colors.accent, 0.16) : colors.surface,
-              border: `4px solid ${active ? colors.accent : alpha(box.tone ? toneColor : colors.muted, 0.6)}`,
-              boxShadow: active ? `0 0 70px ${alpha(colors.accent, 0.45)}` : "0 22px 50px rgba(0,0,0,0.45)",
+              background: active ? alpha(palette.accent, 0.16) : palette.surface,
+              border: `4px solid ${active ? palette.accent : alpha(box.tone ? toneColor : palette.muted, 0.6)}`,
+              boxShadow: active ? `0 0 70px ${alpha(palette.accent, 0.45)}` : "0 22px 50px rgba(0,0,0,0.45)",
               transform: `scale(${(0.5 + 0.5 * s) * pulse * (active ? 1.06 : 1)})`,
               opacity: Math.min(1, s * 1.5),
               display: "flex",
@@ -218,7 +221,7 @@ export const Diagram: FC<TemplateProps<DiagramProps>> = ({ props, cues }) => {
               <Glyph
                 icon={box.icon}
                 size={box.compact ? 56 : 84}
-                color={active ? colors.accent : box.tone ? toneColor : colors.text}
+                color={active ? palette.accent : box.tone ? toneColor : palette.text}
               />
             ) : null}
             <div
@@ -228,7 +231,7 @@ export const Diagram: FC<TemplateProps<DiagramProps>> = ({ props, cues }) => {
                 fontSize: box.compact ? 33 : 38,
                 lineHeight: 1.1,
                 textAlign: box.compact && box.icon ? "left" : "center",
-                color: colors.text,
+                color: palette.text,
               }}
             >
               {box.label}
@@ -255,9 +258,9 @@ export const Diagram: FC<TemplateProps<DiagramProps>> = ({ props, cues }) => {
               fontFamily: fonts.body,
               fontWeight: 700,
               fontSize: 28,
-              color: colors.text,
-              background: colors.surfaceHigh,
-              border: `2px solid ${colors.line}`,
+              color: palette.text,
+              background: palette.surfaceHigh,
+              border: `2px solid ${palette.line}`,
               padding: "6px 16px",
               borderRadius: 999,
               whiteSpace: "nowrap",

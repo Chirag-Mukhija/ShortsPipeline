@@ -3,7 +3,19 @@ import type { JobStatus, LogLevel, Mode, ProjectStatus, Step } from "@clipforge/
 import { and, asc, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { db } from "./client";
-import { artifacts, jobs, logs, projects, spend, type JobLane, type JobRow, type LogRow, type ProjectRow } from "./schema";
+import {
+  artifacts,
+  jobs,
+  logs,
+  projects,
+  recordings,
+  spend,
+  type JobLane,
+  type JobRow,
+  type LogRow,
+  type ProjectRow,
+  type RecordingRow,
+} from "./schema";
 
 export const now = () => new Date().toISOString();
 
@@ -19,9 +31,9 @@ export function createProject(input: {
     topic: input.topic.trim(),
     title: null,
     status: input.status ?? "idea",
-    mode: input.mode ?? "auto",
+    mode: input.mode ?? "assisted",
     currentStep: null,
-    pauseAfter: input.pauseAfter ?? [],
+    pauseAfter: input.pauseAfter ?? ["review"],
     error: null,
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -80,7 +92,7 @@ export function latestArtifacts(projectId: string): Partial<Record<Step, unknown
   return result;
 }
 
-export function enqueueJob(projectId: string, step: Step, lane: JobLane, delayMs = 0): JobRow {
+export function enqueueJob(projectId: string, step: Step, lane: JobLane, delayMs = 0, feedbackNote?: string): JobRow {
   const timestamp = now();
   const row: JobRow = {
     id: nanoid(12),
@@ -93,6 +105,7 @@ export function enqueueJob(projectId: string, step: Step, lane: JobLane, delayMs
     progress: 0,
     message: null,
     error: null,
+    feedbackNote: feedbackNote ?? null,
     runAfter: new Date(Date.now() + delayMs).toISOString(),
     createdAt: timestamp,
     startedAt: null,
@@ -194,6 +207,39 @@ export function addLog(projectId: string, step: Step | null, level: LogLevel, me
 
 export function listLogs(projectId: string, limit = 400): LogRow[] {
   return db.select().from(logs).where(eq(logs.projectId, projectId)).orderBy(desc(logs.id)).limit(limit).all().reverse();
+}
+
+// Decision: re-recording replaces the row (delete then insert) rather than versioning like artifacts — the old
+// audio file is genuinely gone, so its database row should be too, not kept as unreachable history.
+export function upsertRecording(entry: {
+  projectId: string;
+  sceneId: string;
+  file: string;
+  originalName: string | null;
+  durationMs: number;
+}): RecordingRow {
+  db.delete(recordings).where(and(eq(recordings.projectId, entry.projectId), eq(recordings.sceneId, entry.sceneId))).run();
+  const row = { ...entry, createdAt: now() };
+  const result = db.insert(recordings).values(row).run();
+  return { ...row, id: Number(result.lastInsertRowid) };
+}
+
+export function deleteRecording(projectId: string, sceneId: string): RecordingRow | undefined {
+  const row = getRecording(projectId, sceneId);
+  if (row) db.delete(recordings).where(and(eq(recordings.projectId, projectId), eq(recordings.sceneId, sceneId))).run();
+  return row;
+}
+
+export function getRecording(projectId: string, sceneId: string): RecordingRow | undefined {
+  return db
+    .select()
+    .from(recordings)
+    .where(and(eq(recordings.projectId, projectId), eq(recordings.sceneId, sceneId)))
+    .get();
+}
+
+export function listRecordings(projectId: string): RecordingRow[] {
+  return db.select().from(recordings).where(eq(recordings.projectId, projectId)).all();
 }
 
 export function recordSpend(entry: {

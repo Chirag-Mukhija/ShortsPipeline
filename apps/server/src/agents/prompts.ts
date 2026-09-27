@@ -66,21 +66,22 @@ Write the full script as 5 to 9 scenes.
   };
 }
 
-export function reviewPrompt(topic: string, draft: Script): { system: string; prompt: string } {
+export function reviewPrompt(topic: string, draft: Script, feedbackNote?: string): { system: string; prompt: string } {
+  const note = feedbackNote?.trim();
   return {
     system: `${VOICE_GUIDE}\n\nYou are the channel's toughest editor and fact-checker. Nothing gets published without passing you.`,
     prompt: `Review this draft script for a short on "${topic}".
 
 Draft (JSON):
 ${JSON.stringify(draft, null, 2)}
-
+${note ? `\nThe creator left this note. Treat it as a firm instruction, not just a suggestion:\n"${note}"\n` : ""}
 1. Score it 1-10 on hook, clarity, accuracy, pacing and wit.
 2. List concrete issues, most important first: factual errors or shaky claims first, then a weak hook, confusing or skipped steps, filler, cringe phrasing, length problems, weak ending.
 3. Return the improved final script:
    - Fix every factual problem and soften any claim you are not sure about.
    - Keep ${WORDS_MIN}-${WORDS_MAX} words of narration and 5-9 scenes with ids s1, s2, ... in order.
    - Keep the hook at most 14 words and each scene at most 30 words.
-   - Keep what already works. Do not rewrite for the sake of it.`,
+   - Keep what already works. Do not rewrite for the sake of it.${note ? " Address the creator's note above first." : ""}`,
   };
 }
 

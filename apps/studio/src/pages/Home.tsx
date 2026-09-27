@@ -146,7 +146,7 @@ export function Home() {
       <form onSubmit={submit} className="rounded-3xl border border-line bg-gradient-to-br from-surface to-panel p-6 md:p-8">
         <h1 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">What should today's short explain?</h1>
         <p className="mt-2 text-sm text-muted">
-          Fully automatic: angle → script → critic → storyboard → Indian-English voice → animation → render → titles &amp; hashtags.
+          Angle → script → critic pass, then it pauses for your review → storyboard → Indian-English voice → animation → render → titles &amp; hashtags.
         </p>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
           <input

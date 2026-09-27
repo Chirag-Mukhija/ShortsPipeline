@@ -17,6 +17,7 @@
     "@clipforge/video": "workspace:*",
     "@hono/node-server": "^2.1.1",
     "@remotion/bundler": "4.0.529",
+    "@remotion/install-whisper-cpp": "4.0.529",
     "@remotion/renderer": "4.0.529",
     "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.45.3",
