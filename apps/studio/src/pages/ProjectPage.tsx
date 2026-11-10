@@ -32,7 +32,7 @@ export function ProjectPage({ id }: { id: string }) {
     mutationFn: () => api.remove(id),
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: ["projects"] });
-      navigate({ page: "home" });
+      navigate({ page: "shorts" });
     },
   });
 
@@ -45,7 +45,7 @@ export function ProjectPage({ id }: { id: string }) {
     <main className="flex flex-col gap-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-2">
-          <button className="self-start text-xs text-muted hover:text-ink" onClick={() => navigate({ page: "home" })}>
+          <button className="self-start text-xs text-muted hover:text-ink" onClick={() => navigate({ page: "shorts" })}>
             ← All shorts
           </button>
           <h1 className="font-display text-2xl font-extrabold leading-tight tracking-tight md:text-3xl">{project.title ?? project.topic}</h1>

@@ -42,7 +42,7 @@ const EnvSchema = z.object({
   AZURE_SPEECH_REGION: z.string().default("centralindia"),
   SAY_VOICE: z.string().default("Aman"),
   PAUSE_MAX_MS: z.coerce.number().int().min(0).default(300),
-  WHISPER_MODEL: z.enum(["tiny.en", "base.en", "small.en", "medium.en"]).default("base.en"),
+  WHISPER_MODEL: z.enum(["tiny.en", "base.en", "small.en", "medium.en", "tiny", "base", "small", "medium"]).default("base.en"),
   PEXELS_API_KEY: optional,
   PIXABAY_API_KEY: optional,
   MUSIC_VOLUME: z.coerce.number().min(0).max(1).default(0.08),
@@ -51,6 +51,10 @@ const EnvSchema = z.object({
   YOUTUBE_CLIENT_SECRET: optional,
   YOUTUBE_PRIVACY: z.enum(["private", "unlisted", "public"]).default("private"),
   RENDER_CONCURRENCY: optional,
+  STUDIO_MODEL: z.string().default("claude-opus-5-5"),
+  STUDIO_EFFORT: z.enum(["low", "medium", "high", "xhigh", "max"]).default("high"),
+  STUDIO_USAGE_CEILING: z.coerce.number().min(0.1).max(1).default(1),
+  STUDIO_PASSCODE: optional,
 });
 
 export const env = EnvSchema.parse(process.env);

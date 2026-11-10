@@ -8,6 +8,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const dataDir = mkdtempSync(path.join(os.tmpdir(), "clipforge-app-"));
 process.env.DATA_DIR = dataDir;
+// Decision: an empty value wins over the creator's .env (loadEnvFile never overrides), so these tests never hit the studio lock.
+process.env.STUDIO_PASSCODE = "";
+process.env.STUDIO_VIDEOS_DIR = path.join(dataDir, "videos");
 
 type App = Awaited<typeof import("./app")>["createApp"] extends () => infer A ? A : never;
 type Repo = typeof import("./db/repo");

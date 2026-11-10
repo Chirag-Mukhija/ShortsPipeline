@@ -11,6 +11,7 @@
     "dev": "pnpm --parallel --filter \"./apps/*\" dev",
     "start": "pnpm --filter @clipforge/studio build && pnpm --filter @clipforge/server start",
     "make": "pnpm --filter @clipforge/server make",
+    "transcribe": "pnpm --filter @clipforge/server transcribe",
     "remotion": "pnpm --filter @clipforge/video studio",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test"

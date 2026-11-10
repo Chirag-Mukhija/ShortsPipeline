@@ -7,3 +7,13 @@ out/
 *.log
 .DS_Store
 *.tsbuildinfo
+
+
+# Studio: per-video run logs, runner state and the creator's uploaded media stay local; documents are tracked.
+videos/.studio-runner.json
+videos/*/.runs/
+videos/*/inbox/
+videos/*/media/
+videos/*/renders/
+videos/*/takes/
+videos/*/edit/stills/

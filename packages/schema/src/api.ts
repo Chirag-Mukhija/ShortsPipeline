@@ -1,4 +1,5 @@
 // Shapes exchanged between the server API and the studio UI.
+import type { StudioEvent } from "./studio";
 import type { JobStatus, LogLevel, Mode, ProjectStatus, Step } from "./pipeline";
 
 export type ProjectSummary = {
@@ -57,6 +58,7 @@ export type SystemStatus = {
 };
 
 export type ServerEvent =
+  | StudioEvent
   | { type: "project"; projectId: string }
   | { type: "progress"; projectId: string; step: Step; progress: number; message: string | null }
   | { type: "log"; projectId: string; log: LogView };

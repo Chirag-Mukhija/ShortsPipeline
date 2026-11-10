@@ -13,6 +13,7 @@ export default defineConfig({
     proxy: {
       "/api": { target: server, changeOrigin: true },
       "/files": { target: server, changeOrigin: true },
+      "/videofiles": { target: server, changeOrigin: true },
     },
   },
 });

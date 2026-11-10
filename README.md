@@ -1,52 +1,68 @@
 # ClipForge
 
-A personal, local-first pipeline that turns a topic into a finished vertical tech-explainer short for YouTube Shorts and Instagram Reels. It runs on its own from a topic to a rendered video, pauses once for your review right after the script is critiqued, and every step's output is saved so you can inspect or re-run from any point.
+A personal, local video studio. You bring the idea, you're the face and the voice, and you make the creative calls. A team of Claude agents researches the idea, plans it, writes it in your voice and fact-checks it. Editing and motion graphics are next. You run it all from a website on your Mac, iPad or iPhone.
 
 ```
-topic → angle → script → critic pass → ⏸ your review → storyboard → Indian-English voice → assets → synced timeline → render → titles & hashtags → publish/export
+idea → research → plan (your call) → script (your call) → record → edit + motion graphics → rough cut (your call) → package → private upload
+                                                          └─ not built yet ─────────────────────────────────────────────┘
 ```
 
-Every short also gets one of 5 built-in color palettes, an optional looping split-screen background (drop clips into `data/library/gameplay/`), and lets you record your own voice per scene instead of the AI voice, wherever you want it — see [docs/USAGE.md](docs/USAGE.md).
-
-## Quick start
+## Start it
 
 ```bash
 pnpm install
-pnpm dev                     # server on :4310 + studio on http://localhost:5173
+pnpm dev            # website on http://localhost:5173, server on :4310
 ```
 
-Or make one short straight from the terminal:
+Type an idea, or upload a voice memo, and press **Start the team**. Each video page shows:
+- **what needs you right now**: questions as buttons, or Approve and Notes at a gate
+- **the team's documents**, which you can read and edit: brief, plan, title and thumbnail, script, fact-check
+- **a live feed** of what the agents are doing
+- **a box for talking to the showrunner**
+- **an inbox** for your iPad sketches, screenshots and clips; the agents read it
 
+**How it runs:**
+- Videos run in one of two modes:
+  - **ask me at each gate**: the agents stop and wait for your decision
+  - **fully autonomous**: the agents decide and log why
+- The agents are headless Claude Code runs on your Claude plan, one at a time.
+- The header shows how much of your 5-hour Pro window is used.
+- At the limit, the queue pauses and picks up again after the reset.
+
+## Use it from your iPad or iPhone (home Wi-Fi)
+
+In `.env`:
+```
+HOST=0.0.0.0
+STUDIO_PASSCODE=something-only-you-know
+```
+Then run:
 ```bash
-pnpm make "How does UPI move money between banks in two seconds?"
+pnpm start
 ```
+Open `http://<your computer's IP>:4310` on the iPad or iPhone. The studio won't start on the network without a passcode.
 
-About 5 minutes later you get a 1080×1920 MP4 at -14 LUFS plus a ready-to-post folder in `data/exports/` (`short.mp4`, `poster.jpg`, `youtube.txt`, `instagram.txt`).
+To set aside part of your limit for your own use, set `STUDIO_USAGE_CEILING=0.8`. Runs then stop starting at 80% of the window.
 
-**Needs:**
-- Node 24+, pnpm and ffmpeg.
-- A writer: either the Claude Code CLI, logged in (the default; no API key, uses your Claude plan), or an Anthropic, Gemini or OpenAI key.
-- Internet for the voice and fonts.
+## Needs
+- Node 24+, pnpm, ffmpeg, Python 3, `yt-dlp` (research reads public YouTube listings only)
+- Claude Code installed and logged in (`claude`, then `/login`)
 
-## Docs
-
-- **[docs/USAGE.md](docs/USAGE.md):** install, the studio, publishing and YouTube setup, autopilot, every setting, re-running steps, troubleshooting.
-- **[docs/PIPELINE.md](docs/PIPELINE.md):** how it works: architecture, data model, job runner, each of the 10 steps, the timing model, the video engine, design decisions and how to extend it.
-
-## Layout
-
-```
-apps/server      Hono API, SQLite job runner, pipeline steps, LLM/TTS/stock/render/publish adapters
-apps/studio      Vite + React studio (live progress, previews, copyable metadata)
-packages/schema  zod schemas, shared types and timing utilities
-packages/video   Remotion brand kit, scene templates and the Short composition
-docs/            usage guide and pipeline explainer
-```
+## How it's organized
+- **`videos/NNN-slug/`**: one folder per video. Everything the team produces is a readable file here: `status.md` (stages and your decisions), `brief.md`, `plan.md`, `package.md`, `script.md`, `inbox/`.
+- **`CLAUDE.md`**: the showrunner's rules.
+- **`.claude/agents/`**: the team: researcher, scriptwriter, fact-checker, packager.
+- **`.claude/skills/studio/`**: the chain of stages, and the three modes (chat, gated, autonomous).
+- **`.claude/skills/yt-*`**: YouTube craft skills (hooks, packaging, retention, chapters…), from [youtube-agent-skill](https://github.com/Jakeschincariol/youtube-agent-skill).
+- **`apps/server`**: the API, the agent runner, local Whisper (`pnpm transcribe <file>`), rendering and YouTube upload.
+- **`apps/studio`**: the website.
+- **`packages/video`**: the Remotion video engine.
+- **Quick Shorts**: the older one-click Shorts pipeline, still available as a tab.
+  - The engine for it is in `apps/server`.
+  - Its docs are [docs/USAGE.md](docs/USAGE.md) and [docs/PIPELINE.md](docs/PIPELINE.md).
 
 ## Development
-
 ```bash
-pnpm remotion    # Remotion Studio with a sample short, for editing templates
-pnpm test        # unit and HTTP tests
-pnpm typecheck   # all four packages
+pnpm test           # unit and HTTP tests (the runner is tested against a fake Claude)
+pnpm typecheck
 ```

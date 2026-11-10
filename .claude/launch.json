@@ -4,14 +4,36 @@
     {
       "name": "studio",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@clipforge/studio", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@clipforge/studio",
+        "dev"
+      ],
       "port": 5173
     },
     {
       "name": "clipforge",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["dev"],
+      "runtimeArgs": [
+        "dev"
+      ],
       "port": 5173
+    },
+    {
+      "name": "studio-verify",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "SERVER_PORT=4411",
+        "pnpm",
+        "--filter",
+        "@clipforge/studio",
+        "exec",
+        "vite",
+        "--port",
+        "5174",
+        "--strictPort"
+      ],
+      "port": 5174
     }
   ]
 }
