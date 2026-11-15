@@ -22,6 +22,11 @@ import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
 const args = process.argv.slice(2);
 appendFileSync(process.env.FAKE_ARGS_LOG, JSON.stringify(args) + "\\n");
 const prompt = args[args.indexOf("-p") + 1];
+if (prompt === "Reply with OK.") {
+  process.stdout.write(JSON.stringify({ type: "rate_limit_event", rate_limit_info: { status: "allowed", unifiedWindows: { five_hour: { utilization: 0.67, resetsAt: 4102444800 }, seven_day: { utilization: 0.44 } } } }) + "\\n");
+  process.stdout.write(JSON.stringify({ type: "result", subtype: "success", is_error: false, result: "OK" }) + "\\n");
+  process.exit(0);
+}
 const folder = /videos\\/(\\d{3}-[a-z0-9-]+)/.exec(prompt)[1];
 const file = process.env.STUDIO_VIDEOS_DIR + "/" + folder + "/status.md";
 const out = (e) => process.stdout.write(JSON.stringify(e) + "\\n");
@@ -85,12 +90,21 @@ describe("interpret", () => {
   });
 });
 
+describe("refreshUsage", () => {
+  it("reads current Pro usage from the smallest possible request: Haiku, no tools", async () => {
+    const status = await runner.refreshUsage();
+    expect(status.usage).toMatchObject({ fiveHour: 0.67, sevenDay: 0.44 });
+    const args = readFileSync(argsLog, "utf8").trim().split("\n").map((line) => JSON.parse(line) as string[]).at(-1)!;
+    expect(args).toEqual(expect.arrayContaining(["--model", "claude-haiku-5-5", "--tools", "", "--no-session-persistence"]));
+  });
+});
+
 describe("runner", () => {
-  it("runs an autonomous video stage after stage until it reaches a stage that isn't built", async () => {
+  it("runs an autonomous video stage after stage until it reaches the record stage, which is the creator's", async () => {
     const id = videos.createVideo("autonomous chain test", "autonomous");
     runner.enqueue(id, "next");
     await settle(() => statusOf(id).stages.find((s) => s.name === "script")?.state === "done" && !runner.isRunning(id));
-    expect(statusOf(id).stages.map((s) => s.state).slice(0, 5)).toEqual(["done", "done", "done", "done", "not built yet"]);
+    expect(statusOf(id).stages.map((s) => s.state).slice(0, 5)).toEqual(["done", "done", "done", "done", "not started"]);
     const runs = runner.listRuns(id);
     expect(runs).toHaveLength(4);
     expect(runs.every((run) => run.state === "done" && run.costUsd === 0.12)).toBe(true);

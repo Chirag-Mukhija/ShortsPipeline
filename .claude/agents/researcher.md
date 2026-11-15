@@ -12,6 +12,7 @@ You are the studio's researcher. The showrunner gives you a video folder (`video
 - `<folder>/status.md`: decisions already made, which you must respect
 - `~/.claude/youtube/voice.md` if it exists: who the creator talks to
 - `channel/lessons.md` if it exists: what past videos taught
+- if `status.md` says `Audio: music`: `.claude/skills/studio/music-only.md`. The video has no voice-over, so the research section there changes your searches, your facts and your angles.
 
 ## Do
 1. **YouTube landscape.** Write 3-5 searches a real viewer would type, not marketing phrases. Run:

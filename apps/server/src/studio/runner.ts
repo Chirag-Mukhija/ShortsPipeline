@@ -1,15 +1,17 @@
 // Runs studio stages as headless Claude Code sessions, one at a time: queues, chains stages, streams a live feed and pauses at the Pro usage limit.
 import { spawn, type ChildProcess } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import { nanoid } from "nanoid";
 import type { FeedLine, RunSummary, RunnerStatus, Usage, VideoMode } from "@clipforge/schema";
 import { ROOT_DIR, env } from "../config";
+import { exec } from "../lib/exec";
+import { StepError } from "../pipeline/errors";
 import { emit } from "../pipeline/events";
 import { interpret, resumeTime, type StreamEvent } from "./runEvents";
-import { VIDEOS_DIR, currentStage, isBuilt, parseStatus, readQuestions, videoDir } from "./videos";
+import { CREATOR_STAGES, VIDEOS_DIR, currentStage, isBuilt, parseStatus, readQuestions, videoDir } from "./videos";
 
 // Decision: an allowlist, not a denylist. A studio run may read and write the repo, research the web, use its skills and
 // subagents, and run only the studio's own scripts; anything else (installs, git, deletes, arbitrary code) is refused.
@@ -155,7 +157,7 @@ function shouldChain(videoId: string, before: string): boolean {
   const { mode, stages } = parseStatus(readFileSync(path.join(videoDir(videoId), "status.md"), "utf8"));
   if (mode === "chat") return false;
   const current = currentStage(stages);
-  if (!current || !isBuilt(current)) return false;
+  if (!current || !isBuilt(current) || CREATOR_STAGES.has(current.name)) return false;
   if (/waiting|needs changes/.test(current.state)) return false;
   return stageSnapshot(videoId) !== before;
 }
@@ -250,6 +252,10 @@ function pump(): void {
 
 export function enqueue(videoId: string, kind: "next" | "message", text?: string): Job {
   videoDir(videoId);
+  if (kind === "next") {
+    const current = currentStage(parseStatus(readFileSync(path.join(videoDir(videoId), "status.md"), "utf8")).stages);
+    if (current && CREATOR_STAGES.has(current.name)) throw new StepError(`The ${current.name} stage is yours: open the Record page`, false);
+  }
   if (kind === "next" && (active?.job.videoId === videoId || state.queue.some((job) => job.videoId === videoId && job.kind === "next"))) {
     throw new Error("This video already has a stage running or queued");
   }
@@ -270,6 +276,42 @@ export function stop(videoId: string): void {
     active.child.kill("SIGTERM");
   }
   broadcast(videoId);
+}
+
+// Decision: Claude Code only reports Pro usage alongside a real request, so a refresh sends the smallest one possible:
+// Haiku, no tools, a one-line system prompt, from an empty temp folder (measured: ~900 tokens, ~3 s). It also sees usage
+// from the creator's own Claude Code sessions, which studio runs alone can't.
+const PROBE_MODEL = "claude-haiku-5-5";
+let probing: Promise<RunnerStatus> | null = null;
+
+export function refreshUsage(): Promise<RunnerStatus> {
+  probing ??= (async () => {
+    try {
+      const { stdout, stderr, code } = await exec(
+        env.CLAUDE_CLI_PATH,
+        ["-p", "Reply with OK.", "--model", PROBE_MODEL, "--output-format", "stream-json", "--verbose", "--tools", "", "--system-prompt", "Reply with OK.",
+          "--strict-mcp-config", "--no-session-persistence", "--disable-slash-commands", "--max-turns", "1"],
+        { cwd: tmpdir(), timeoutMs: 45_000 },
+      );
+      let usage: Omit<Usage, "checkedAt"> | null = null;
+      for (const line of stdout.split("\n")) {
+        if (!line.trim()) continue;
+        try {
+          usage = interpret(JSON.parse(line) as StreamEvent).usage ?? usage;
+        } catch {
+          // not a JSON event line
+        }
+      }
+      if (!usage) throw new StepError(code === 0 ? "Claude Code didn't report usage this time. Try again in a minute." : `Couldn't reach Claude Code: ${(stderr || stdout).trim().slice(-200)}`, false);
+      state.usage = { ...usage, checkedAt: now() };
+      save();
+      broadcast();
+      return runnerStatus();
+    } finally {
+      probing = null;
+    }
+  })();
+  return probing;
 }
 
 export function resumeNow(): void {

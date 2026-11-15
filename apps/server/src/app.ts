@@ -18,7 +18,7 @@ import { VIDEOS_DIR, VIDEO_FILES_PREFIX } from "./studio/videos";
 import { seedIdeas } from "./seed";
 
 const SERVABLE = ["projects/", "library/", "exports/"];
-const VIDEO_SERVABLE = /^\d{3}-[a-z0-9-]+\/(inbox|renders)\/[^/]+$/;
+const VIDEO_SERVABLE = /^\d{3}-[a-z0-9-]+\/((inbox|renders)\/[^/]+|record\/(takes\/)?[^/]+\.wav)$/;
 
 export function createApp(): Hono {
   const app = new Hono();

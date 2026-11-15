@@ -1,27 +1,62 @@
-// Studio home: start a video from a typed, dictated or recorded idea, and see every video on a board by stage and what it's waiting on.
-import { VIDEO_MODES, type VideoMode, type VideoSummary } from "@clipforge/schema";
+// Studio home: start a video from a typed or spoken idea, see what needs you now, and every video as a row with its progress through the stages.
+import { VIDEO_MODES, type VideoAudio, type VideoMode, type VideoSummary } from "@clipforge/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState, type FormEvent } from "react";
 import { studio } from "../api";
-import { Button, Empty } from "../components/ui";
-import { navigate } from "../hooks";
+import { ArrowRightIcon, MicIcon, StopIcon } from "../components/icons";
+import { Button, PageHeader, Segmented } from "../components/ui";
+import { hrefOf, navigate } from "../hooks";
 
-const COLUMNS = ["idea", "research", "plan", "script", "record", "edit + graphics", "rough cut", "package + upload"] as const;
+export const STAGES = [
+  { name: "idea", short: "Idea" },
+  { name: "research", short: "Research" },
+  { name: "plan", short: "Plan" },
+  { name: "script", short: "Script" },
+  { name: "record", short: "Record" },
+  { name: "edit + graphics", short: "Edit" },
+  { name: "rough cut", short: "Rough cut" },
+  { name: "package + upload", short: "Package" },
+] as const;
+
+// A music-only video has no record stage, so its progress track leaves it out.
+export const stagesFor = (audio: VideoAudio) => STAGES.filter((stage) => audio === "voice" || stage.name !== "record");
+
+export const AUDIO_CHOICES: { id: VideoAudio; label: string; title: string }[] = [
+  { id: "voice", label: "Voice-over", title: "You record a voice-over; the team writes it in your voice" },
+  { id: "music", label: "Music only", title: "No voice: the team designs the visuals and on-screen text to carry it, set to music" },
+];
 
 const MODE_HELP: Record<VideoMode, string> = {
-  gated: "Agents stop at each gate and ask you",
-  autonomous: "Agents make every call and log why",
+  gated: "The team stops at each gate and asks you",
+  autonomous: "The team makes every call and logs why",
   chat: "Work on it in a Claude Code chat instead",
 };
 
 export function cardState(video: VideoSummary): { label: string; tone: string } {
   if (video.running) return { label: "Agents working", tone: "text-accent" };
-  if (video.waitingForCreator) return { label: "Waiting for you", tone: "text-warn" };
+  if (video.waitingForCreator) return { label: "Your turn", tone: "text-accent" };
   if (!video.currentStage) return { label: "Finished", tone: "text-good" };
   if (video.currentState?.startsWith("not built")) return { label: "Next stage not built yet", tone: "text-dim" };
   if (video.currentState === "needs changes") return { label: "Redoing with your notes", tone: "text-info" };
   return { label: video.currentState ?? "", tone: "text-muted" };
 }
+
+export function nextStep(video: VideoSummary): string {
+  if (video.currentStage === "record") return "Record the voice-over";
+  // The summary can't tell open questions from a gate, so this names the stage, not the exact ask.
+  return video.currentStage ? `Your call on the ${video.currentStage}` : "The team needs you";
+}
+
+const ago = (iso: string) => {
+  const minutes = Math.round((Date.now() - Date.parse(iso)) / 60_000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.round(hours / 24)}d ago`;
+};
+
+const number = (video: VideoSummary) => `#${String(video.number).padStart(3, "0")}`;
 
 function VoiceIdea({ onText }: { onText: (text: string) => void }) {
   const recorder = useRef<MediaRecorder | null>(null);
@@ -47,20 +82,21 @@ function VoiceIdea({ onText }: { onText: (text: string) => void }) {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+    <div className="flex flex-wrap items-center gap-3 text-xs text-dim">
       {canRecord ? (
-        <Button type="button" className="!px-3 !py-1.5 text-xs" onClick={() => void toggle()} disabled={transcribe.isPending}>
-          {recording ? "■ Stop and transcribe" : "● Say it instead"}
+        <Button type="button" tone={recording ? "danger" : "quiet"} size="sm" onClick={() => void toggle()} disabled={transcribe.isPending}>
+          {recording ? <StopIcon size={14} /> : <MicIcon size={14} />}
+          {recording ? "Stop and transcribe" : "Say it instead"}
         </Button>
       ) : (
-        <label className="cursor-pointer rounded-xl border border-line bg-surface px-3 py-1.5 text-ink hover:bg-surface-hi">
-          Upload a voice memo
+        <label className="inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-muted hover:bg-surface hover:text-ink">
+          <MicIcon size={14} /> Upload a voice memo
           <input type="file" accept="audio/*" className="hidden" onChange={(event) => event.target.files?.[0] && transcribe.mutate(event.target.files[0])} />
         </label>
       )}
-      {transcribe.isPending ? <span>transcribing on this computer…</span> : null}
+      {recording ? <span className="flex items-center gap-1.5 text-bad"><span className="size-1.5 animate-pulse rounded-full bg-bad" /> Listening</span> : null}
+      {transcribe.isPending ? <span>Transcribing on this computer…</span> : null}
       {transcribe.error ? <span className="text-bad">{transcribe.error.message}</span> : null}
-      {!canRecord ? <span className="text-dim">or tap the mic on your keyboard to dictate</span> : null}
     </div>
   );
 }
@@ -69,101 +105,165 @@ function NewVideo() {
   const client = useQueryClient();
   const [idea, setIdea] = useState("");
   const [mode, setMode] = useState<VideoMode>("gated");
+  const [audio, setAudio] = useState<VideoAudio>("voice");
   const create = useMutation({
-    mutationFn: () => studio.create(idea.trim(), mode),
+    mutationFn: () => studio.create(idea.trim(), mode, audio),
     onSuccess: (video) => {
       setIdea("");
       void client.invalidateQueries({ queryKey: ["videos"] });
       navigate({ page: "video", id: video.id });
     },
   });
+  const ready = idea.trim().length >= 3;
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (idea.trim().length >= 3) create.mutate();
+    if (ready) create.mutate();
   };
   return (
-    <form onSubmit={submit} className="rounded-3xl border border-line bg-gradient-to-br from-surface to-panel p-5 md:p-7">
-      <h1 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">What's the next video?</h1>
-      <p className="mt-1 text-sm text-muted">Say it however it's in your head. The team researches it, plans it and writes it, and checks with you at every gate.</p>
+    <form onSubmit={submit} className="rounded-xl border border-line bg-panel transition-colors focus-within:border-line-hi">
       <textarea
         value={idea}
         onChange={(event) => setIdea(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && (event.metaKey || event.ctrlKey) && ready) create.mutate();
+        }}
         rows={3}
-        placeholder="e.g. how UPI moves money in two seconds, explained like I'm 15"
-        className="mt-4 w-full resize-y rounded-2xl border border-line bg-bg px-4 py-3 text-base outline-none placeholder:text-dim focus:border-accent"
+        placeholder="What's the next video? Say it however it's in your head, with your own story in it."
+        className="block w-full resize-none bg-transparent px-5 pb-2 pt-4 text-[15px] leading-relaxed text-ink outline-none placeholder:text-dim"
       />
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-        <VoiceIdea onText={(text) => setIdea((current) => (current ? `${current} ${text}` : text))} />
+      <div className="flex flex-wrap items-center justify-between gap-3 px-3 pb-3">
         <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={mode}
-            onChange={(event) => setMode(event.target.value as VideoMode)}
-            className="rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none"
-            title={MODE_HELP[mode]}
-          >
+          <VoiceIdea onText={(text) => setIdea((current) => (current ? `${current} ${text}` : text))} />
+          <Segmented label="Voice-over or music only" items={AUDIO_CHOICES} value={audio} onChange={setAudio} />
+        </div>
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          <select value={mode} onChange={(event) => setMode(event.target.value as VideoMode)} className="field !h-9 min-w-0 flex-1 !py-0 text-sm sm:!w-auto sm:flex-none" title={MODE_HELP[mode]}>
             {VIDEO_MODES.filter((m) => m !== "chat").map((m) => (
               <option key={m} value={m}>
                 {m === "gated" ? "Ask me at each gate" : "Fully autonomous"}
               </option>
             ))}
           </select>
-          <Button tone="primary" type="submit" className="!px-5" disabled={create.isPending || idea.trim().length < 3}>
+          <Button tone="primary" type="submit" disabled={create.isPending || !ready}>
             {create.isPending ? "Starting…" : "Start the team"}
+            <ArrowRightIcon size={14} />
           </Button>
         </div>
       </div>
-      {create.error ? <p className="mt-2 text-sm text-bad">{create.error.message}</p> : null}
+      {audio === "music" ? (
+        <p className="px-5 pb-3 text-xs leading-relaxed text-muted">
+          No voice-over. The visuals and on-screen text carry the whole video, set to music, so the team designs every shot for it. There's nothing to record; the script becomes a cue sheet.
+        </p>
+      ) : null}
+      {create.error ? <p className="px-5 pb-3 text-sm text-bad">{create.error.message}</p> : null}
     </form>
   );
 }
 
-function Card({ video }: { video: VideoSummary }) {
-  const state = cardState(video);
+export function StageTrack({ current, finished, audio, className = "" }: { current: string | null; finished: boolean; audio: VideoAudio; className?: string }) {
+  const stages = stagesFor(audio);
+  const at = finished ? stages.length : stages.findIndex((s) => s.name === current);
   return (
-    <button
-      onClick={() => navigate({ page: "video", id: video.id })}
-      className={`flex w-full flex-col gap-2 rounded-2xl border bg-surface p-3 text-left transition hover:border-accent/60 ${video.waitingForCreator ? "border-warn/60" : "border-line"}`}
-    >
-      <div className="flex items-center justify-between text-[11px] text-dim">
-        <span className="font-mono">#{String(video.number).padStart(3, "0")}</span>
-        <span className="rounded-full bg-surface-hi px-2 py-0.5">{video.mode}</span>
+    <div className={`flex gap-1 ${className}`} aria-label={finished ? "Finished" : `At stage: ${current}`}>
+      {stages.map((stage, i) => (
+        <span key={stage.name} title={stage.short} className={`h-1 flex-1 rounded-full ${i < at ? "bg-muted" : i === at ? "bg-accent" : "bg-surface-hi"}`} />
+      ))}
+    </div>
+  );
+}
+
+function Row({ video }: { video: VideoSummary }) {
+  const state = cardState(video);
+  const stage = STAGES.find((s) => s.name === video.currentStage);
+  return (
+    <a href={hrefOf({ page: "video", id: video.id })} className="group grid grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3.5 transition-colors hover:bg-surface md:grid-cols-[52px_minmax(0,1fr)_200px_96px_16px]">
+      <span className="font-mono text-xs text-dim">{number(video)}</span>
+      <span className="min-w-0">
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-sm font-medium text-ink">{video.title}</span>
+          {video.audio === "music" ? <span className="eyebrow shrink-0 rounded border border-line px-1.5 !text-[10px]">Music only</span> : null}
+        </span>
+        <span className={`mt-0.5 flex items-center gap-1.5 text-xs ${state.tone}`}>
+          {video.running ? <span className="size-1.5 animate-pulse rounded-full bg-accent" /> : null}
+          {state.label}
+        </span>
+      </span>
+      <span className="hidden flex-col gap-1.5 md:flex">
+        <span className="eyebrow">{video.currentStage ? stage?.short ?? video.currentStage : "Finished"}</span>
+        <StageTrack current={video.currentStage} finished={!video.currentStage} audio={video.audio} />
+      </span>
+      <span className="text-right text-xs text-dim">{ago(video.updatedAt)}</span>
+      <ArrowRightIcon size={14} className="hidden text-dim transition-transform group-hover:translate-x-0.5 group-hover:text-ink md:block" />
+    </a>
+  );
+}
+
+function NeedsYou({ videos }: { videos: VideoSummary[] }) {
+  const { data: voice } = useQuery({ queryKey: ["voice"], queryFn: studio.voice });
+  const waiting = videos.filter((v) => v.waitingForCreator && !v.running);
+  const count = waiting.length + (voice?.due ? 1 : 0);
+  if (count === 0) return null;
+  return (
+    <section className="flex flex-col gap-3">
+      <h2 className="eyebrow">Needs you · {count}</h2>
+      <div className="grid gap-3 md:grid-cols-2">
+        {waiting.map((video) => (
+          <a key={video.id} href={hrefOf({ page: "video", id: video.id })} className="group flex flex-col gap-3 rounded-xl border border-line bg-panel p-4 transition-colors hover:border-line-hi">
+            <div className="flex items-center justify-between">
+              <span className="eyebrow">
+                {number(video)} · {STAGES.find((s) => s.name === video.currentStage)?.short ?? video.currentStage}
+              </span>
+              <span className="size-1.5 rounded-full bg-accent" />
+            </div>
+            <div className="line-clamp-2 text-[15px] font-medium leading-snug text-ink">{video.title}</div>
+            <div className="mt-auto flex items-center justify-between text-sm">
+              <span className="text-muted">{nextStep(video)}</span>
+              <ArrowRightIcon size={14} className="text-dim transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
+            </div>
+          </a>
+        ))}
+        {voice?.due ? (
+          <a href={hrefOf({ page: "voice" })} className="group flex flex-col gap-3 rounded-xl border border-line bg-panel p-4 transition-colors hover:border-line-hi">
+            <div className="flex items-center justify-between">
+              <span className="eyebrow">Voice practice</span>
+              <MicIcon size={14} className="text-dim" />
+            </div>
+            <div className="line-clamp-2 text-[15px] font-medium leading-snug text-ink">{voice.topic}</div>
+            <div className="mt-auto flex items-center justify-between text-sm">
+              <span className="text-muted">Talk about it for 2–3 minutes</span>
+              <ArrowRightIcon size={14} className="text-dim transition-transform group-hover:translate-x-0.5 group-hover:text-accent" />
+            </div>
+          </a>
+        ) : null}
       </div>
-      <div className="line-clamp-3 text-sm font-semibold leading-snug">{video.title}</div>
-      <div className={`flex items-center gap-1.5 text-xs ${state.tone}`}>
-        {video.running ? <span className="size-1.5 animate-pulse rounded-full bg-accent" /> : null}
-        {state.label}
-      </div>
-    </button>
+    </section>
   );
 }
 
 export function Board() {
   const { data: videos = [], isLoading } = useQuery({ queryKey: ["videos"], queryFn: studio.videos, refetchInterval: 30_000 });
-  const finished = videos.filter((video) => !video.currentStage);
   return (
-    <main className="flex flex-col gap-6">
-      <NewVideo />
-      {isLoading ? null : videos.length === 0 ? (
-        <Empty>No videos yet. Type an idea above and the team takes it from there.</Empty>
-      ) : (
-        <div className="scrollbar-thin -mx-6 flex snap-x gap-3 overflow-x-auto px-6 pb-2">
-          {[...COLUMNS, "finished"].map((column) => {
-            const items = column === "finished" ? finished : videos.filter((video) => video.currentStage === column);
-            return (
-              <section key={column} className="flex w-60 shrink-0 snap-start flex-col gap-2">
-                <h2 className="flex items-center justify-between px-1 text-xs font-semibold uppercase tracking-wider text-muted">
-                  {column}
-                  <span className="text-dim">{items.length || ""}</span>
-                </h2>
-                {items.map((video) => (
-                  <Card key={video.id} video={video} />
-                ))}
-                {items.length === 0 ? <div className="rounded-2xl border border-dashed border-line/60 p-3 text-xs text-dim">—</div> : null}
-              </section>
-            );
-          })}
-        </div>
-      )}
-    </main>
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-5">
+        <PageHeader eyebrow="Studio" title="Videos" />
+        <NewVideo />
+      </div>
+      <NeedsYou videos={videos} />
+      <section className="flex flex-col gap-3">
+        <h2 className="eyebrow">All videos{videos.length ? ` · ${videos.length}` : ""}</h2>
+        {isLoading ? null : videos.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-line px-6 py-12 text-center">
+            <div className="text-sm text-ink">Start your first video</div>
+            <p className="mt-1 text-sm text-dim">Type an idea above. The team researches it, plans it and writes it, and checks with you at every gate.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-panel">
+            {videos.map((video) => (
+              <Row key={video.id} video={video} />
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
   );
 }

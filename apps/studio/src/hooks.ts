@@ -3,14 +3,25 @@ import type { FeedLine, RunnerStatus, ServerEvent, VideoDetail } from "@clipforg
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-export type Route = { page: "board" } | { page: "video"; id: string } | { page: "shorts" } | { page: "project"; id: string };
+export type Route =
+  | { page: "board" }
+  | { page: "video"; id: string }
+  | { page: "record"; id: string }
+  | { page: "voice" }
+  | { page: "guide" }
+  | { page: "shorts" }
+  | { page: "project"; id: string };
 
 function parseHash(hash: string): Route {
+  const record = hash.match(/^#\/v\/([\w-]+)\/record/);
+  if (record?.[1]) return { page: "record", id: record[1] };
   const video = hash.match(/^#\/v\/([\w-]+)/);
   if (video?.[1]) return { page: "video", id: video[1] };
   const project = hash.match(/^#\/p\/([\w-]+)/);
   if (project?.[1]) return { page: "project", id: project[1] };
   if (hash.startsWith("#/shorts")) return { page: "shorts" };
+  if (hash.startsWith("#/voice")) return { page: "voice" };
+  if (hash.startsWith("#/guide")) return { page: "guide" };
   return { page: "board" };
 }
 
@@ -24,9 +35,23 @@ export function useRoute(): Route {
   return route;
 }
 
+export function hrefOf(route: Route): string {
+  switch (route.page) {
+    case "video":
+      return `#/v/${route.id}`;
+    case "record":
+      return `#/v/${route.id}/record`;
+    case "project":
+      return `#/p/${route.id}`;
+    case "board":
+      return "#/";
+    default:
+      return `#/${route.page}`;
+  }
+}
+
 export function navigate(route: Route): void {
-  window.location.hash =
-    route.page === "video" ? `#/v/${route.id}` : route.page === "project" ? `#/p/${route.id}` : route.page === "shorts" ? "#/shorts" : "#/";
+  window.location.hash = hrefOf(route);
 }
 
 export function useLiveUpdates(): void {

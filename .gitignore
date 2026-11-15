@@ -16,4 +16,10 @@ videos/*/inbox/
 videos/*/media/
 videos/*/renders/
 videos/*/takes/
+videos/*/record/takes/
+videos/*/record/trash/
+videos/*/record/*.wav
 videos/*/edit/stills/
+
+# Python bytecode from the studio tools.
+__pycache__/

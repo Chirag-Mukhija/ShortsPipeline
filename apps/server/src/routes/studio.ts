@@ -1,30 +1,36 @@
-// HTTP API for the studio website: videos and their artifacts, creator decisions, agent runs, the inbox, and voice-note ideas.
+// HTTP API for the studio website: videos and their artifacts, creator decisions, agent runs, the inbox, voice practice and the record page.
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { Hono } from "hono";
 import { z } from "zod";
-import { INBOX_INTENTS, VIDEO_MODES, type VideoDetail } from "@clipforge/schema";
+import { INBOX_INTENTS, VIDEO_AUDIO, VIDEO_MODES, type VideoDetail } from "@clipforge/schema";
 import { StepError } from "../pipeline/errors";
-import { enqueue, isRunning, listRuns, resumeNow, runnerStatus, stop } from "../studio/runner";
+import { emit } from "../pipeline/events";
+import { enqueue, isRunning, listRuns, refreshUsage, resumeNow, runnerStatus, stop } from "../studio/runner";
+import { appendChunk, deleteTake, exportNarration, finishTake, listen, recordState, retranscribe, saveCuts, setCleanup, startTake } from "../studio/record";
 import {
+  CREATOR_STAGES,
   addInboxItem,
   addNotes,
   answerQuestions,
   approveStage,
   createVideo,
+  currentStage,
   listFiles,
   listInbox,
   listVideoIds,
   parseStatus,
   readQuestions,
   readTextFile,
+  setAudio,
   setMode,
   summarize,
   videoDir,
   writeArtifact,
 } from "../studio/videos";
 import { transcribeRecording } from "../tts/whisperAlign";
+import { saveSample, voiceStatus } from "../studio/voice";
 
 export const studio = new Hono();
 
@@ -51,6 +57,8 @@ function detail(id: string): VideoDetail {
 // Decision: a creator action that unblocks a video (answering, approving, giving notes) starts its next run right away,
 // unless something is already running or queued for it.
 function continueVideo(id: string): void {
+  const current = currentStage(parseStatus(readFileSync(path.join(videoDir(id), "status.md"), "utf8")).stages);
+  if (current && CREATOR_STAGES.has(current.name)) return;
   if (!isRunning(id)) enqueue(id, "next");
 }
 
@@ -63,8 +71,8 @@ studio.get("/studio/videos", (c) =>
 );
 
 studio.post("/studio/videos", async (c) => {
-  const input = await body(c, z.object({ idea: z.string().trim().min(3, "Describe the idea in a few words"), mode: z.enum(VIDEO_MODES).default("gated"), start: z.boolean().default(true) }));
-  const id = createVideo(input.idea, input.mode);
+  const input = await body(c, z.object({ idea: z.string().trim().min(3, "Describe the idea in a few words"), mode: z.enum(VIDEO_MODES).default("gated"), audio: z.enum(VIDEO_AUDIO).default("voice"), start: z.boolean().default(true) }));
+  const id = createVideo(input.idea, input.mode, input.audio);
   if (input.start) enqueue(id, "next");
   return c.json(detail(id), 201);
 });
@@ -82,6 +90,12 @@ studio.put("/studio/videos/:id/file", async (c) => {
 studio.post("/studio/videos/:id/mode", async (c) => {
   const input = await body(c, z.object({ mode: z.enum(VIDEO_MODES) }));
   setMode(c.req.param("id"), input.mode);
+  return c.json(detail(c.req.param("id")));
+});
+
+studio.post("/studio/videos/:id/audio", async (c) => {
+  const input = await body(c, z.object({ audio: z.enum(VIDEO_AUDIO) }));
+  setAudio(c.req.param("id"), input.audio);
   return c.json(detail(c.req.param("id")));
 });
 
@@ -152,8 +166,67 @@ studio.post("/studio/transcribe", async (c) => {
 
 studio.get("/studio/runner", (c) => c.json(runnerStatus()));
 
+studio.post("/studio/runner/usage", async (c) => c.json(await refreshUsage()));
+
 studio.post("/studio/runner/resume", (c) => {
   resumeNow();
   return c.json(runnerStatus());
 });
 
+studio.get("/studio/voice", (c) => c.json(voiceStatus()));
+
+studio.post("/studio/voice/sample", async (c) => {
+  const form = await c.req.parseBody();
+  const file = form.file;
+  if (!(file instanceof File)) throw new StepError("Attach a recording", false);
+  const saved = await saveSample(Buffer.from(await file.arrayBuffer()), file.name || "sample.webm", String(form.topic ?? voiceStatus().topic));
+  return c.json({ ...saved, status: voiceStatus() });
+});
+
+const CUT_REASONS = ["retake", "filler", "redone", "outside", "you"] as const;
+const raw = async (c: { req: { arrayBuffer: () => Promise<ArrayBuffer> } }) => Buffer.from(await c.req.arrayBuffer());
+
+studio.get("/studio/videos/:id/record", (c) => c.json(recordState(c.req.param("id"))));
+
+studio.post("/studio/videos/:id/record/takes", async (c) => {
+  const input = await body(c, z.object({ rate: z.number().int(), from: z.number().int().min(0) }));
+  return c.json({ take: startTake(c.req.param("id"), input.rate, input.from) });
+});
+
+studio.post("/studio/videos/:id/record/takes/:take/chunk", async (c) => {
+  appendChunk(c.req.param("id"), c.req.param("take"), await raw(c));
+  return c.json({ ok: true });
+});
+
+studio.post("/studio/videos/:id/record/takes/:take/finish", async (c) => c.json(await finishTake(c.req.param("id"), c.req.param("take"))));
+
+studio.post("/studio/videos/:id/record/takes/:take/retranscribe", async (c) => c.json(await retranscribe(c.req.param("id"), c.req.param("take"))));
+
+studio.put("/studio/videos/:id/record/cleanup", async (c) => {
+  const input = await body(c, z.object({ cleanup: z.enum(["off", "gentle", "strong"]) }));
+  return c.json(setCleanup(c.req.param("id"), input.cleanup));
+});
+
+studio.put("/studio/videos/:id/record/takes/:take/cuts", async (c) => {
+  const input = await body(c, z.object({ cuts: z.array(z.enum(CUT_REASONS).nullable()) }));
+  saveCuts(c.req.param("id"), c.req.param("take"), input.cuts);
+  return c.json({ ok: true });
+});
+
+studio.delete("/studio/videos/:id/record/takes/:take", (c) => {
+  deleteTake(c.req.param("id"), c.req.param("take"));
+  return c.json(recordState(c.req.param("id")));
+});
+
+studio.post("/studio/videos/:id/record/listen", async (c) => {
+  const from = Number(c.req.query("from") ?? 0);
+  return c.json(await listen(c.req.param("id"), Number.isFinite(from) ? Math.max(0, Math.round(from)) : 0, await raw(c)));
+});
+
+studio.post("/studio/videos/:id/record/export", async (c) => {
+  const input = await body(c, z.object({ finish: z.boolean().default(false) }));
+  const id = c.req.param("id");
+  const state = await exportNarration(id, input.finish);
+  emit({ type: "studio", videoId: id });
+  return c.json(state);
+});

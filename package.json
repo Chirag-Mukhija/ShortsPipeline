@@ -14,7 +14,8 @@
     "transcribe": "pnpm --filter @clipforge/server transcribe",
     "remotion": "pnpm --filter @clipforge/video studio",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "setup:denoise": "sh scripts/setup-denoise.sh"
   },
   "devDependencies": {
     "typescript": "^7.0.2"

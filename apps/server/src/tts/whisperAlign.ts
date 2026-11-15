@@ -8,6 +8,7 @@ import { splitWords, type TimedWord } from "@clipforge/schema";
 import { env, paths } from "../config";
 import { probeDurationMs, transcodeToMp3, transcodeToWav } from "../media/ffmpeg";
 import { applyCuts, detectSilences, planCuts, remapWords } from "../media/tighten";
+import { execOrThrow } from "../lib/exec";
 import { alignWords } from "./align";
 import type { SpeechBoundary } from "./types";
 
@@ -53,9 +54,10 @@ export function tokensToBoundaries(transcription: TranscriptionJson<true>["trans
   return boundaries;
 }
 
-async function runWhisper(wavFile: string, model: WhisperModel = env.WHISPER_MODEL): Promise<TranscriptionJson<true>> {
+async function runWhisper(wavFile: string, model: WhisperModel = env.WHISPER_MODEL, prompt?: string): Promise<TranscriptionJson<true>> {
   await ensureWhisper(model);
   return transcribe({
+    ...(prompt ? { additionalArgs: [["--prompt", prompt]] as [string, string][] } : {}),
     inputPath: wavFile,
     whisperPath: paths.whisper,
     whisperCppVersion: WHISPER_CPP_VERSION,
@@ -63,6 +65,7 @@ async function runWhisper(wavFile: string, model: WhisperModel = env.WHISPER_MOD
     modelFolder: paths.whisper,
     tokenLevelTimestamps: true,
     language: "en",
+    printOutput: false,
   });
 }
 
@@ -184,4 +187,51 @@ export function anchoredShare(displayWords: string[], boundaries: SpeechBoundary
   const heard = new Set(boundaries.map((b) => norm(b.text)).filter(Boolean));
   const script = displayWords.map(norm).filter(Boolean);
   return script.length ? script.filter((word) => heard.has(word)).length / script.length : 0;
+}
+
+export type HeardWord = { text: string; start: number; end: number };
+
+// Whisper's tokens regrouped into words (a leading space starts a new word), in seconds.
+// Decision: timings come from the DTW timestamp (t_dtw), not the token offsets. Measured on a test take, the offsets
+// drifted by up to a second, while t_dtw landed consistently ~0.12 s before each word's real end.
+export function toWords(transcription: TranscriptionJson<true>["transcription"]): HeardWord[] {
+  const LAG = 0.12;
+  const words: HeardWord[] = [];
+  let prev: { at: number; punct: boolean } | null = null;
+  for (const token of transcription.flatMap((segment) => segment.tokens)) {
+    const text = token.text.trim();
+    if (!text || SPECIAL_TOKEN.test(text)) continue;
+    const dtw = token.t_dtw >= 0 ? token.t_dtw / 100 : null;
+    const punct = !/[a-z0-9]/i.test(text);
+    const current = words.at(-1);
+    if (!punct && (/^\s/.test(token.text) || !current)) {
+      const end = dtw !== null ? dtw + LAG : token.offsets.to / 1000;
+      const start = dtw === null ? token.offsets.from / 1000 : prev ? prev.at + (prev.punct ? 0 : LAG) : Math.max(0, dtw - 0.35);
+      words.push({ text, start: Math.min(start, end - 0.06), end });
+    } else if (current) {
+      current.text += text;
+      if (!punct) current.end = dtw !== null ? dtw + LAG : token.offsets.to / 1000;
+    }
+    if (dtw !== null) prev = { at: dtw, punct };
+  }
+  // Markers like [BLANK_AUDIO] arrive split over several tokens, so they're stripped from the joined words.
+  return words
+    .map((w, i) => ({ ...w, text: w.text.replace(/\[[^\]]*\]?/g, "").trim(), start: Math.max(0, i > 0 ? Math.max(w.start, words[i - 1]!.start + 0.02) : w.start) }))
+    .filter((w) => /[a-z0-9]/i.test(w.text));
+}
+
+// Decision: no script prompt here. Measured on test takes, a prompt made small.en up to 5x slower (fallback decoding)
+// and made it invent words; mis-heard names are matched to the script by sound instead (see similar()).
+export async function transcribeWords(wav16k: string): Promise<HeardWord[]> {
+  return toWords((await runWhisper(wav16k)).transcription);
+}
+
+// Fast plain-text pass for the live teleprompter: the small base.en model straight through the whisper.cpp binary,
+// about 0.7 s for a few seconds of audio on an M2.
+export async function quickText(wav16k: string, prompt: string): Promise<string> {
+  await ensureWhisper("base.en");
+  const { stdout } = await execOrThrow(path.join(paths.whisper, "main"), [
+    "-m", path.join(paths.whisper, "ggml-base.en.bin"), "-f", wav16k, "-nt", "-np", "-l", "en", "--prompt", prompt.slice(0, 400),
+  ]);
+  return stdout.replace(/\[[^\]]*\]|\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
 }

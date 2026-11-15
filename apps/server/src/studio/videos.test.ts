@@ -104,3 +104,39 @@ describe("video folders", () => {
     expect(() => v.videoDir("../evil")).toThrow();
   });
 });
+
+describe("voice-over or music only", () => {
+  const status = (id: string) => v.parseStatus(readFileSync(path.join(videosDir, id, "status.md"), "utf8"));
+  const record = (id: string) => status(id).stages.find((s) => s.name === "record")?.state;
+
+  it("treats a status.md without an Audio line as a voice-over", () => {
+    expect(v.parseStatus("# Status\nMode: gated\n").audio).toBe("voice");
+    expect(v.parseStatus("# Status\nMode: gated\nAudio: music   <!-- c -->\n").audio).toBe("music");
+  });
+
+  it("starts a music-only video with the record stage skipped and the choice logged", () => {
+    const id = v.createVideo("Rainy Tokyo night walk, just visuals", "autonomous", "music");
+    expect(v.summarize(id, false)).toMatchObject({ audio: "music", mode: "autonomous", currentStage: "idea" });
+    expect(record(id)).toBe("skipped");
+    expect(status(id).decisions.at(-1)).toMatch(/idea: the creator chose music only/);
+    // The skipped record stage counts as done, so after the script the chain moves on to the edit.
+    const md = readFileSync(path.join(videosDir, id, "status.md"), "utf8");
+    const scripted = ["idea", "research", "plan", "script"].reduce((text, stage) => v.setStageState(text, stage, "done"), md);
+    expect(v.currentStage(v.parseStatus(scripted).stages)?.name).toBe("edit + graphics");
+  });
+
+  it("switches until the plan is approved, then locks", () => {
+    const id = v.createVideo("A voiced explainer", "gated");
+    expect(v.summarize(id, false).audio).toBe("voice");
+    expect(record(id)).toBe("not started");
+    v.setAudio(id, "music");
+    expect(status(id).audio).toBe("music");
+    expect(record(id)).toBe("skipped");
+    v.setAudio(id, "voice");
+    expect(record(id)).toBe("not started");
+    expect(status(id).decisions.filter((d) => d.includes("switched this video")).length).toBe(2);
+    v.approveStage(id, "plan");
+    expect(() => v.setAudio(id, "music")).toThrow(/plan is already approved/);
+    expect(status(id).audio).toBe("voice");
+  });
+});

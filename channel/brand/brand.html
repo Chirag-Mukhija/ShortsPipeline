@@ -1,0 +1,86 @@
+<!-- Draws the channel's logo, watermark and banner as SVG; render.sh screenshots each one to a PNG. Pick one with #logo, #watermark or #banner. -->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
+  svg { display: block; }
+</style>
+</head>
+<body>
+<script>
+// Decision: the name and tagline live here only, so changing the channel name is one edit plus ./render.sh.
+const NAME = ["Chirag", "Builds"];
+const TAGLINE = "Learning tech in the AI era, by building things.";
+
+const BG = "#0b0b0c", INK = "#f5f5f2", ACCENT = "#ff6b50", DIM = "#8b8b86";
+const FONT = `"SF Pro Display", -apple-system, "Helvetica Neue", Arial, sans-serif`;
+
+// The mark: a bold C with a coral text cursor in its opening, so it reads as "C, typing". Drawn on an 800 grid.
+function mark() {
+  return `
+    <path d="M 560.9 265 A 210 210 0 1 0 560.9 535" fill="none" stroke="${INK}" stroke-width="92"/>
+    <rect x="548" y="338" width="64" height="124" rx="8" fill="${ACCENT}"/>`;
+}
+
+function logo(withGlow) {
+  return `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="100%" height="100%">
+    <defs>
+      <radialGradient id="glow" cx="0.62" cy="0.5" r="0.55">
+        <stop offset="0" stop-color="${ACCENT}" stop-opacity="0.22"/>
+        <stop offset="1" stop-color="${ACCENT}" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="400" cy="400" r="400" fill="${BG}"/>
+    ${withGlow ? `<circle cx="400" cy="400" r="400" fill="url(#glow)"/>` : ""}
+    <g transform="translate(18 0)">${mark()}</g>
+  </svg>`;
+}
+
+function banner() {
+  const W = 2048, H = 1152;
+  // YouTube's safe area (what every device shows) is the centred 1235 x 338 box.
+  const sx = (W - 1235) / 2, sy = (H - 338) / 2;
+  let grid = "";
+  for (let x = 0; x <= W; x += 64) grid += `<line x1="${x}" y1="0" x2="${x}" y2="${H}"/>`;
+  for (let y = 0; y <= H; y += 64) grid += `<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`;
+  return `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+    <defs>
+      <radialGradient id="bglow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="${ACCENT}" stop-opacity="0.16"/>
+        <stop offset="1" stop-color="${ACCENT}" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${BG}" stop-opacity="1"/>
+        <stop offset="0.35" stop-color="${BG}" stop-opacity="0"/>
+        <stop offset="0.65" stop-color="${BG}" stop-opacity="0"/>
+        <stop offset="1" stop-color="${BG}" stop-opacity="1"/>
+      </linearGradient>
+    </defs>
+    <rect width="${W}" height="${H}" fill="${BG}"/>
+    <g stroke="${INK}" stroke-opacity="0.05" stroke-width="1">${grid}</g>
+    <ellipse cx="${W / 2}" cy="${H / 2}" rx="900" ry="420" fill="url(#bglow)"/>
+    <rect width="${W}" height="${H}" fill="url(#fade)"/>
+
+    <g transform="translate(${sx + 40} ${sy + 39}) scale(0.325)">
+      <circle cx="400" cy="400" r="400" fill="#141416" stroke="${INK}" stroke-opacity="0.08" stroke-width="6"/>
+      <g transform="translate(18 0)">${mark()}</g>
+    </g>
+
+    <g font-family='${FONT}'>
+      <text x="${sx + 360}" y="${sy + 178}" font-size="128" font-weight="800" letter-spacing="-4" fill="${INK}">${NAME[0]} <tspan fill="${ACCENT}">${NAME[1]}</tspan></text>
+      <text x="${sx + 364}" y="${sy + 250}" font-size="38" font-weight="500" fill="${DIM}">${TAGLINE}</text>
+    </g>
+  </svg>`;
+}
+
+const which = location.hash.slice(1) || "logo";
+document.body.innerHTML =
+  which === "banner" ? banner() :
+  `<div style="width:100vw;height:100vh">${logo(which === "logo")}</div>`;
+</script>
+</body>
+</html>

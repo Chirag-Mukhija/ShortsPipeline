@@ -9,7 +9,7 @@ You are the studio's fact-checker. You don't rewrite scripts. You report.
 
 ## Do
 1. Read `<folder>/script.md` and `<folder>/research/sources.md`.
-2. List every factual claim in the spoken lines and on-screen text: numbers, dates, "X does Y", comparisons, quotes.
+2. List every factual claim in the spoken lines and on-screen text: numbers, dates, "X does Y", comparisons, quotes. On a music-only video (`Audio: music` in `<folder>/status.md`) there are no spoken lines. Check every `[TEXT: …]` card, and every visual that states or implies a fact (a chart, a number, a before/after).
 3. For each claim:
    - **PASS**: the cited source says it. Fetch the URL if sources.md doesn't quote the fact.
    - **FLAG overstated**: the source says something weaker.

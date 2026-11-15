@@ -3,6 +3,10 @@
 export const VIDEO_MODES = ["chat", "gated", "autonomous"] as const;
 export type VideoMode = (typeof VIDEO_MODES)[number];
 
+// Decision: "voice" is a voice-over the creator records; "music" has no voice at all, so visuals and on-screen text carry the video.
+export const VIDEO_AUDIO = ["voice", "music"] as const;
+export type VideoAudio = (typeof VIDEO_AUDIO)[number];
+
 export const INBOX_INTENTS = ["reference", "use as visual", "for a beat", "other"] as const;
 export type InboxIntent = (typeof INBOX_INTENTS)[number];
 
@@ -34,6 +38,7 @@ export type VideoSummary = {
   number: number;
   title: string;
   mode: VideoMode;
+  audio: VideoAudio;
   currentStage: string | null;
   currentState: string | null;
   waitingForCreator: boolean;
@@ -49,6 +54,15 @@ export type VideoDetail = VideoSummary & {
   questions: StudioQuestions | null;
   inbox: InboxItem[];
   runs: RunSummary[];
+};
+
+export type VoiceStatus = {
+  exists: boolean;
+  updatedAt: string | null;
+  samples: number;
+  newSamples: number;
+  due: boolean;
+  topic: string;
 };
 
 export type Usage = { fiveHour: number | null; sevenDay: number | null; resetsAt: string | null; checkedAt: string };

@@ -42,7 +42,7 @@ const EnvSchema = z.object({
   AZURE_SPEECH_REGION: z.string().default("centralindia"),
   SAY_VOICE: z.string().default("Aman"),
   PAUSE_MAX_MS: z.coerce.number().int().min(0).default(300),
-  WHISPER_MODEL: z.enum(["tiny.en", "base.en", "small.en", "medium.en", "tiny", "base", "small", "medium"]).default("base.en"),
+  WHISPER_MODEL: z.enum(["tiny.en", "base.en", "small.en", "medium.en", "tiny", "base", "small", "medium"]).default("small.en"),
   PEXELS_API_KEY: optional,
   PIXABAY_API_KEY: optional,
   MUSIC_VOLUME: z.coerce.number().min(0).max(1).default(0.08),
@@ -69,6 +69,8 @@ export const paths = {
   gameplay: path.join(DATA_DIR, "library", "gameplay"),
   cache: path.join(DATA_DIR, "cache"),
   whisper: path.join(DATA_DIR, "cache", "whisper"),
+  // Installed by `pnpm setup:denoise`; the record page falls back to ffmpeg's denoiser without it.
+  deepFilter: path.join(DATA_DIR, "cache", "denoise", "deep-filter"),
   secrets: path.join(DATA_DIR, "secrets"),
   exports: path.join(DATA_DIR, "exports"),
   studioDist: path.join(ROOT_DIR, "apps", "studio", "dist"),

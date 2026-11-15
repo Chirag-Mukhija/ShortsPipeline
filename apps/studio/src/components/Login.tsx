@@ -2,6 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { studio } from "../api";
+import { Logo } from "./Sidebar";
 import { Button } from "./ui";
 
 export function Login() {
@@ -16,23 +17,17 @@ export function Login() {
     if (passcode) login.mutate();
   };
   return (
-    <main className="flex min-h-[70vh] items-center justify-center">
-      <form onSubmit={submit} className="flex w-full max-w-sm flex-col gap-4 rounded-3xl border border-line bg-panel p-6">
+    <main className="flex min-h-full items-center justify-center px-5">
+      <form onSubmit={submit} className="rise flex w-full max-w-[360px] flex-col gap-5">
+        <Logo />
         <div>
-          <h1 className="font-display text-2xl font-extrabold">Studio locked</h1>
-          <p className="mt-1 text-sm text-muted">Enter your studio passcode. This device stays unlocked for 30 days.</p>
+          <h1 className="text-2xl font-semibold tracking-[-0.025em]">Studio locked</h1>
+          <p className="mt-1.5 text-sm text-muted">Enter your passcode. This device stays unlocked for 30 days.</p>
         </div>
-        <input
-          type="password"
-          autoFocus
-          value={passcode}
-          onChange={(event) => setPasscode(event.target.value)}
-          className="rounded-xl border border-line bg-bg px-4 py-3 text-base outline-none focus:border-accent"
-          placeholder="Passcode"
-        />
-        {login.error ? <p className="text-sm text-bad">{login.error.message}</p> : null}
-        <Button tone="primary" type="submit" disabled={!passcode || login.isPending}>
-          Unlock
+        <input type="password" autoFocus value={passcode} onChange={(event) => setPasscode(event.target.value)} className="field !h-11 !text-base" placeholder="Passcode" />
+        {login.error ? <p className="-mt-2 text-sm text-bad">{login.error.message}</p> : null}
+        <Button tone="primary" type="submit" className="!h-11" disabled={!passcode || login.isPending}>
+          {login.isPending ? "Unlocking…" : "Unlock"}
         </Button>
       </form>
     </main>

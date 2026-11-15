@@ -3,6 +3,7 @@
 
     python3 new_video.py "how I built a video studio with claude"
     python3 new_video.py "..." --slug claude-studio
+    python3 new_video.py "..." --audio music     # no voice-over: visuals and on-screen text carry it
 
 Folders are videos/NNN-slug/ under the repo root, numbered after the highest existing one. Never overwrites.
 """
@@ -21,6 +22,15 @@ def slugify(text, limit=5):
     return "-".join(kept[:limit]) or "video"
 
 
+def choose_audio(status, audio, today):
+    # Mirrors createVideo in apps/server/src/studio/videos.ts, so a chat-started video looks like a website-started one.
+    status = re.sub(r"^Audio:\s*\w+", "Audio: " + audio, status, flags=re.M)
+    if audio == "music":
+        status = re.sub(r"^\| record \| not started \|", "| record | skipped |", status, flags=re.M)
+    said = "music only, no voice: the visuals carry it" if audio == "music" else "a voice-over in their own voice"
+    return status.replace("\n\n## Notes for the next stage", "\n- %s idea: the creator chose %s\n\n## Notes for the next stage" % (today, said))
+
+
 def next_number():
     if not os.path.isdir(VIDEOS):
         return 1
@@ -32,6 +42,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("idea")
     ap.add_argument("--slug")
+    ap.add_argument("--audio", choices=["voice", "music"], help="omit it and the idea stage asks the creator")
     args = ap.parse_args()
 
     folder = os.path.join(VIDEOS, "%03d-%s" % (next_number(), args.slug or slugify(args.idea)))
@@ -42,6 +53,8 @@ def main():
     for name in sorted(os.listdir(TEMPLATES)):
         with open(os.path.join(TEMPLATES, name)) as fh:
             text = fh.read().replace("{{IDEA}}", args.idea.strip()).replace("{{DATE}}", today)
+        if name == "status.md" and args.audio:
+            text = choose_audio(text, args.audio, today)
         with open(os.path.join(folder, name), "w") as fh:
             fh.write(text)
     print(os.path.relpath(folder, ROOT))

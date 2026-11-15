@@ -2,10 +2,12 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
+  VIDEO_AUDIO,
   VIDEO_MODES,
   type InboxItem,
   type StageRow,
   type StudioQuestions,
+  type VideoAudio,
   type VideoMode,
   type VideoSummary,
 } from "@clipforge/schema";
@@ -38,9 +40,12 @@ export function videoDir(id: string): string {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function parseStatus(md: string): { mode: VideoMode; stages: StageRow[]; decisions: string[]; notes: string[] } {
+export function parseStatus(md: string): { mode: VideoMode; audio: VideoAudio; stages: StageRow[]; decisions: string[]; notes: string[] } {
   const modeMatch = /^Mode:\s*(\w+)/m.exec(md);
   const mode = (VIDEO_MODES as readonly string[]).includes(modeMatch?.[1] ?? "") ? (modeMatch?.[1] as VideoMode) : "chat";
+  // Videos started before the choice existed have no Audio line; they were all voice-overs.
+  const audioMatch = /^Audio:\s*(\w+)/m.exec(md);
+  const audio = (VIDEO_AUDIO as readonly string[]).includes(audioMatch?.[1] ?? "") ? (audioMatch?.[1] as VideoAudio) : "voice";
   const stages: StageRow[] = [];
   for (const line of md.split("\n")) {
     const cells = line.split("|").map((cell) => cell.trim());
@@ -59,11 +64,12 @@ export function parseStatus(md: string): { mode: VideoMode; stages: StageRow[]; 
       .filter((line) => line.startsWith("- "))
       .map((line) => line.slice(2).trim());
   };
-  return { mode, stages, decisions: section("Creator decisions"), notes: section("Notes for the next stage") };
+  return { mode, audio, stages, decisions: section("Creator decisions"), notes: section("Notes for the next stage") };
 }
 
+// Decision: a skipped stage (record, on a music-only video) counts as done, so the chain walks past it.
 export function isDone(stage: StageRow): boolean {
-  return /^done\b/.test(stage.state);
+  return /^(done|skipped)\b/.test(stage.state);
 }
 
 export function currentStage(stages: StageRow[]): StageRow | null {
@@ -81,6 +87,13 @@ function readStatus(id: string): string {
 function writeStatus(id: string, md: string): void {
   writeFileSync(path.join(videoDir(id), "status.md"), md);
 }
+
+export function updateStatus(id: string, change: (md: string) => string): void {
+  writeStatus(id, change(readStatus(id)));
+}
+
+// Decision: stages the creator does on the website themselves. No agent run is started for them.
+export const CREATOR_STAGES = new Set(["record"]);
 
 export function appendToSection(md: string, title: string, line: string): string {
   const header = `## ${title}`;
@@ -147,7 +160,7 @@ export function readQuestions(id: string): StudioQuestions | null {
 
 export function summarize(id: string, running: boolean): VideoSummary {
   const dir = videoDir(id);
-  const { mode, stages } = parseStatus(readStatus(id));
+  const { mode, audio, stages } = parseStatus(readStatus(id));
   const current = currentStage(stages);
   const questions = readQuestions(id);
   return {
@@ -155,9 +168,10 @@ export function summarize(id: string, running: boolean): VideoSummary {
     number: Number(FOLDER.exec(id)?.[1] ?? 0),
     title: titleOf(dir, id),
     mode,
+    audio,
     currentStage: current?.name ?? null,
     currentState: current?.state ?? null,
-    waitingForCreator: questions !== null || /waiting/.test(current?.state ?? ""),
+    waitingForCreator: questions !== null || /waiting/.test(current?.state ?? "") || CREATOR_STAGES.has(current?.name ?? ""),
     running,
     updatedAt: new Date(newestMtime(dir)).toISOString(),
   };
@@ -206,6 +220,25 @@ export function setMode(id: string, mode: VideoMode): void {
   writeStatus(id, appendToSection(next, "Creator decisions", `${today()} mode: the creator switched this video to ${mode} mode`));
 }
 
+const AUDIO_LABEL: Record<VideoAudio, string> = { voice: "a voice-over in their own voice", music: "music only, no voice: the visuals carry it" };
+
+function withAudio(md: string, audio: VideoAudio): string {
+  const line = `Audio: ${audio}   <!-- voice | music; see .claude/skills/studio/music-only.md -->`;
+  const next = /^Audio:.*$/m.test(md) ? md.replace(/^Audio:.*$/m, line) : md.replace(/^(Mode:.*)$/m, `$1\n${line}`);
+  return setStageState(next, "record", audio === "music" ? "skipped" : "not started");
+}
+
+// Decision: the choice is open until the plan is approved; after that the plan, cue sheet and packaging are built around it.
+export function setAudio(id: string, audio: VideoAudio): void {
+  const md = readStatus(id);
+  const parsed = parseStatus(md);
+  if (parsed.audio === audio) return;
+  if (parsed.stages.some((stage) => stage.name === "plan" && isDone(stage))) {
+    throw bad("The plan is already approved for this choice. To change it, ask the showrunner to redo the plan.");
+  }
+  writeStatus(id, appendToSection(withAudio(md, audio), "Creator decisions", `${today()} idea: the creator switched this video to ${AUDIO_LABEL[audio]}`));
+}
+
 export function answerQuestions(id: string, answers: Record<string, string>): void {
   const questions = readQuestions(id);
   if (!questions) throw bad("There are no open questions on this video");
@@ -246,7 +279,7 @@ export function addInboxItem(id: string, original: string, bytes: Buffer, note: 
   writeFileSync(meta, JSON.stringify(items, null, 2));
   writeStatus(
     id,
-    appendToSection(readStatus(id), "Notes for the next stage", `${today()} inbox: the creator added inbox/${file} (${intent})${note.trim() ? `: "${note.trim()}"` : ""}`),
+    appendToSection(readStatus(id), "Notes for the next stage", `${today()} inbox: the creator added inbox/${file} (${intent})${note.trim() ? `: "${note.trim().replace(/\s*\n\s*/g, " / ")}"` : ""}`),
   );
   return file;
 }
@@ -258,7 +291,7 @@ export function listInbox(id: string): InboxItem[] {
   return items.map((item) => ({ ...item, url: `${VIDEO_FILES_PREFIX}/${id}/inbox/${encodeURIComponent(item.file)}` })).reverse();
 }
 
-export function createVideo(idea: string, mode: VideoMode): string {
+export function createVideo(idea: string, mode: VideoMode, audio: VideoAudio = "voice"): string {
   const templates = path.join(ROOT_DIR, ".claude", "skills", "studio", "templates");
   const numbers = listVideoIds().map((name) => Number(name.slice(0, 3)));
   const number = (numbers.length ? Math.max(...numbers) : 0) + 1;
@@ -270,7 +303,8 @@ export function createVideo(idea: string, mode: VideoMode): string {
   mkdirSync(path.join(dir, "research"), { recursive: true });
   for (const name of readdirSync(templates)) {
     const text = readFileSync(path.join(templates, name), "utf8").replaceAll("{{IDEA}}", idea.trim()).replaceAll("{{DATE}}", today());
-    writeFileSync(path.join(dir, name), name === "status.md" ? text.replace(/^Mode:.*$/m, `Mode: ${mode}`) : text);
+    const status = () => appendToSection(withAudio(text.replace(/^Mode:.*$/m, `Mode: ${mode}`), audio), "Creator decisions", `${today()} idea: the creator chose ${AUDIO_LABEL[audio]}`);
+    writeFileSync(path.join(dir, name), name === "status.md" ? status() : text);
   }
   return id;
 }

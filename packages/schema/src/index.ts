@@ -9,3 +9,4 @@ export * from "./timing";
 export * from "./artifacts";
 export * from "./api";
 export * from "./studio";
+export * from "./record";

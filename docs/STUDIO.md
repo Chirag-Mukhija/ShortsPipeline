@@ -1,38 +1,96 @@
-# ClipForge Studio: state of the project (2026-11-10, end of day)
+# ClipForge Studio: where we are (2026-11-15)
 
-## Where we are
-The project is reset to **idea → research → plan → script**, the part that worked. Tomorrow's goal is to test and refine those stages on your own topics until the script is right. Then build the next stage, one step at a time.
+You bring the idea and make the calls. A team of agents researches, plans and writes. The website is where you run it all.
 
-The first production attempt (record, editing, motion graphics, rough cut) is **parked**, not deleted:
-- **Code:** git branch `archive/production-attempt`. To look at it: `git checkout archive/production-attempt`, then `git checkout master` to come back.
-- **Video 1** (brief, plan, script, rough cut, takes) is in `../clipforge-archive/001-claude-video-studio/`.
-- **Why it's parked:** the rough cut still looked like the old Shorts pipeline. Production gets redesigned later, after scripting is solid.
+## Where we are in the flow
 
-## What exists now
-- **Website:** `pnpm dev`, then http://localhost:5173. It uses your `STUDIO_PASSCODE` from `.env`.
-  - **Board:** start a video from a typed or dictated idea, or a voice memo. Pick "ask me at each gate" for testing.
-  - **Video page:**
-    - questions as buttons
-    - Approve or Redo-with-notes at the plan and script gates
-    - documents you can read and edit (Brief, Plan, Title & thumbnail, Script, Fact-check, Sources, Idea, Status)
-    - live feed
-    - **Talk to the showrunner** box
-    - inbox for sketches and screenshots
-    - decision log
-  - **Header:** your Pro 5-hour usage. Runs pause at the limit.
-- **Team:** researcher, scriptwriter and packager on Sonnet 5.5; fact-checker on Haiku 5.5; the showrunner on Opus 5.5. Rules are in `CLAUDE.md`; stage playbooks are in `.claude/skills/studio/stages/`.
-- **Skills:** `/studio new | next | status`, `/voice-profile`, and the `yt-*` YouTube craft skills.
-- **Tools:** `pnpm transcribe <file>` gives a `.txt` + `.srt` from local Whisper. `niche.py` finds YouTube outliers by multiple of each channel's median.
+```
+idea → research → plan (gate) → script (gate) → record → [edit + graphics → rough cut (gate) → package (gate) → private upload]
+ ✅       ✅          ✅              ✅            ✅         └──────────────── not built yet ────────────────┘
+```
 
-## Tomorrow: testing the scripting stages
-1. **Run `/voice-profile` first.** Record 2–3 minutes of yourself talking in Hinglish, so scripts sound like you.
-2. **Start a video** with your own topic, plus a few lines of explanation of what you want, in **gated** mode.
-3. **At each step check:**
-   - **research:** are the outliers real and relevant? Spot-check 3 sources.
-   - **plan:** did it pick the angle you would? Use Redo with notes if not.
-   - **script:** read it aloud. Is it your language and your pace? Are the facts true?
-4. **Use the Talk to the showrunner box**, or edit documents directly, instead of long chat sessions. Every change is logged in `status.md`.
-5. **Write down what's off.** Fixes go into the agent files (`.claude/agents/*.md`) and stage playbooks, one change at a time, then test again.
+- Stages 1–5 are built.
+- The current focus is still **testing them on your own topics**, one step at a time, before anything new is built.
+- **Video 001** ("AI Can Code. So What Should I Actually Learn?") has its script approved and is in the **record** stage.
+  - It has takes, but the takes for Beats 6–8 (and take 7) have mic glitches.
+  - It hasn't been exported yet.
 
-## Not built (on purpose, for now)
-Record → edit + motion graphics → rough cut → package → upload, and setup on the Victus.
+## What's built
+
+**Website** (`pnpm dev` → http://localhost:5173, locked with your `STUDIO_PASSCODE`)
+- **Videos (board):** start a video from a typed or spoken idea. You choose:
+  - **Ask me at each gate** or **Fully autonomous**
+  - **Voice-over** or **Music only**
+
+  "Needs you" shows what's waiting on you.
+- **Video page:**
+  - **Steps and actions:** the stage stepper, and one "Now" bar for whatever needs you (answer, approve, give notes, record, run next).
+  - **Documents:** read and edit them all.
+  - **Side panel:** a live activity feed, Ask the showrunner, an inbox for iPad sketches and screenshots, and the decision log.
+- **Record page:**
+  - a teleprompter that follows your voice (local Whisper)
+  - takes and pickups (restarts are cut for you)
+  - cut by editing text
+  - export to `narration.wav` with word timings, captions and a transcript
+  - **Recording safety:**
+    - **Hear myself:** monitor in wired earphones.
+    - **Live glitch warning:** a red alert when the mic crackles or cuts out, and glitched words tinted red in Edit.
+    - **Transcribe again:** ↻ on any take.
+    - **Background noise cleanup:** Off / Gentle / Strong.
+- **Voice practice:** a short talking sample every week or two, so scripts keep sounding like you.
+- **How it works:** the guide inside the website.
+- **Also:**
+  - light/dark theme
+  - your Pro usage meter (runs pause at the limit and resume after it resets)
+  - the old Quick Shorts pipeline, kept under "Legacy"
+
+**The team** (rules in `CLAUDE.md`, playbooks in `.claude/skills/studio/`)
+
+| Who | Model | Does |
+|---|---|---|
+| Showrunner | Opus | Runs each stage and brings you only your decisions |
+| Researcher | Sonnet | YouTube outliers (`niche.py`), sources, three angles |
+| Scriptwriter | Sonnet | Script in your voice, every beat with a visual |
+| Fact-checker | Haiku | Every claim checked against its source |
+| Packager | Sonnet | Title and thumbnail as one pairing |
+
+**Music-only videos** (new): no voice at all, so the visuals carry everything.
+- The plan gets a full visual direction, three style frames to sketch, and a music brief.
+- The script becomes a **cue sheet** of shots, text cards and music cues.
+- Record is skipped.
+- Details: `.claude/skills/studio/music-only.md`.
+
+**Tools:**
+- `pnpm transcribe <file>`: local Whisper, writes `.txt` + `.srt`
+- `pnpm setup:denoise`: installs DeepFilterNet, the better noise cleanup
+- `pnpm test` and `pnpm typecheck`: currently 90 tests passing and a clean typecheck
+
+## Loose ends (small, whenever you're free)
+1. **Commit.** All work since the last commit (Record page, noise cleanup, glitch detection, music-only) is **not committed yet**. Ask me to commit it.
+2. **Better noise cleanup:** run `pnpm setup:denoise` once. Until then, the studio uses ffmpeg's milder filter.
+3. **Video 001:**
+   - fix the mic cable or USB
+   - test with Hear myself
+   - re-record Beats 6–8
+   - compare noise cleanup Off and Gentle in Edit
+   - export
+4. **Try one music-only video** start to finish through the cue sheet, to test the new playbook.
+
+## What's next (in order, one step at a time)
+1. **Edit + graphics (stage 6).**
+   - The video is timed to your narration's word timings, or to the music on a music-only video.
+   - Motion graphics for each beat come from the `[ON SCREEN]` cues and your sketches.
+   - Captions.
+   - Free or open-licensed background music, with the license recorded per track.
+   - Optional camera: your face recorded during the same take on the Record page, via the iPhone (Continuity Camera) or the webcam.
+2. **Rough cut (gate):** you review with notes pinned to timestamps.
+3. **Package (gate):**
+   - Code draws what it can: text, shapes, drawn graphics.
+   - Your face comes from a real photo you take.
+   - For anything else, the packager writes ready-to-paste Gemini prompts.
+4. **Private upload.** You press Publish.
+5. **Later:** Shorts as a format choice, and a landing page.
+
+## Picking it back up after exams
+- Open a fresh Claude Code session in this folder and say "read docs/STUDIO.md". Every video's state lives in its own `videos/NNN-slug/status.md`, so nothing is lost between sessions.
+- To continue a video: `/studio next`, or **Run next stage** on its video page.

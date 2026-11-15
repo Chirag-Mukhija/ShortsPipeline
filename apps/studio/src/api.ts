@@ -1,16 +1,28 @@
-// Typed client for the ClipForge server API: the studio (videos, runs, inbox, login) and the older Shorts pipeline.
+// Typed client for the ClipForge server API: the studio (videos, runs, inbox, voice, recording, login) and the older Shorts pipeline.
 import type {
+  Cleanup,
+  CutReason,
   InboxIntent,
   ProjectDetail,
   ProjectSummary,
+  RecordState,
   RunnerStatus,
   Script,
   Step,
   SystemStatus,
   VideoDetail,
+  VideoAudio,
   VideoMode,
   VideoSummary,
+  VoiceStatus,
 } from "@clipforge/schema";
+
+async function raw<T>(path: string, body: ArrayBuffer): Promise<T> {
+  const response = await fetch(path, { method: "POST", headers: { "content-type": "application/octet-stream" }, body });
+  const data = (await response.json().catch(() => ({}))) as T & { error?: string };
+  if (!response.ok) throw new Error(data.error ?? `POST ${path} failed (${response.status})`);
+  return data;
+}
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const response = await fetch(path, {
@@ -60,7 +72,7 @@ export const studio = {
   login: (passcode: string) => request<{ ok: true }>("POST", "/api/auth", { passcode }),
   videos: () => request<VideoSummary[]>("GET", "/api/studio/videos"),
   video: (id: string) => request<VideoDetail>("GET", video(id)),
-  create: (idea: string, mode: VideoMode, start = true) => request<VideoDetail>("POST", "/api/studio/videos", { idea, mode, start }),
+  create: (idea: string, mode: VideoMode, audio: VideoAudio, start = true) => request<VideoDetail>("POST", "/api/studio/videos", { idea, mode, audio, start }),
   file: async (id: string, path: string): Promise<string> => {
     const response = await fetch(`${video(id)}/file?path=${encodeURIComponent(path)}`);
     if (!response.ok) throw new Error(`Couldn't open ${path}`);
@@ -68,6 +80,7 @@ export const studio = {
   },
   saveFile: (id: string, path: string, content: string) => request<VideoDetail>("PUT", `${video(id)}/file`, { path, content }),
   setMode: (id: string, mode: VideoMode) => request<VideoDetail>("POST", `${video(id)}/mode`, { mode }),
+  setAudio: (id: string, audio: VideoAudio) => request<VideoDetail>("POST", `${video(id)}/audio`, { audio }),
   answer: (id: string, answers: Record<string, string>) => request<VideoDetail>("POST", `${video(id)}/answers`, { answers }),
   approve: (id: string, stage: string, note?: string) => request<VideoDetail>("POST", `${video(id)}/approve`, { stage, note }),
   notes: (id: string, stage: string, notes: string) => request<VideoDetail>("POST", `${video(id)}/notes`, { stage, notes }),
@@ -86,6 +99,24 @@ export const studio = {
     form.append("file", new File([file], name, { type: file.type }));
     return upload<{ text: string }>("/api/studio/transcribe", form);
   },
+  voice: () => request<VoiceStatus>("GET", "/api/studio/voice"),
+  record: (id: string) => request<RecordState>("GET", `/api/studio/videos/${id}/record`),
+  startTake: (id: string, rate: number, from: number) => request<{ take: string }>("POST", `/api/studio/videos/${id}/record/takes`, { rate, from }),
+  sendChunk: (id: string, take: string, pcm: ArrayBuffer) => raw<{ ok: true }>(`/api/studio/videos/${id}/record/takes/${take}/chunk`, pcm),
+  finishTake: (id: string, take: string) => request<RecordState>("POST", `/api/studio/videos/${id}/record/takes/${take}/finish`),
+  retranscribe: (id: string, take: string) => request<RecordState>("POST", `/api/studio/videos/${id}/record/takes/${take}/retranscribe`),
+  setCleanup: (id: string, cleanup: Cleanup) => request<RecordState>("PUT", `/api/studio/videos/${id}/record/cleanup`, { cleanup }),
+  saveCuts: (id: string, take: string, cuts: (CutReason | null)[]) => request<{ ok: true }>("PUT", `/api/studio/videos/${id}/record/takes/${take}/cuts`, { cuts }),
+  deleteTake: (id: string, take: string) => request<RecordState>("DELETE", `/api/studio/videos/${id}/record/takes/${take}`),
+  listen: (id: string, from: number, pcm: ArrayBuffer) => raw<{ cursor: number; heard: string; busy?: true }>(`/api/studio/videos/${id}/record/listen?from=${from}`, pcm),
+  exportNarration: (id: string, finish: boolean) => request<RecordState>("POST", `/api/studio/videos/${id}/record/export`, { finish }),
+  addVoiceSample: (file: Blob, name: string, topic: string) => {
+    const form = new FormData();
+    form.append("file", new File([file], name, { type: file.type }));
+    form.append("topic", topic);
+    return upload<{ file: string; text: string; status: VoiceStatus }>("/api/studio/voice/sample", form);
+  },
   runner: () => request<RunnerStatus>("GET", "/api/studio/runner"),
   resume: () => request<RunnerStatus>("POST", "/api/studio/runner/resume"),
+  refreshUsage: () => request<RunnerStatus>("POST", "/api/studio/runner/usage"),
 };

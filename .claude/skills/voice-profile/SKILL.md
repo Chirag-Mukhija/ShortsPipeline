@@ -11,6 +11,9 @@ description: >-
 
 Every `yt-*` skill and the scriptwriter read `~/.claude/youtube/voice.md`. The creator has few videos of their own, so build it from how they actually talk, not from how they write.
 
+## 0. Practice samples from the website
+The board's **Voice practice** card saves recordings plus their transcripts to `~/.claude/youtube/samples/` (one `.txt` per sample, with its topic). When you run this skill, read every sample `.txt` newer than `voice.md` first. If any exist, skip steps 1–2: refine voice.md from them (new verbatim lines, new tics, words that keep coming up) and keep everything the creator already confirmed. Then go to step 4.
+
 ## 1. Get a real sample of their speech
 Ask the creator to record **2–3 minutes** of themselves talking naturally:
 - with the Maono mic, using QuickTime → New Audio Recording, or Voice Memos
@@ -19,7 +22,7 @@ Ask the creator to record **2–3 minutes** of themselves talking naturally:
 
 They save the file and tell you where it is. Then run:
 `pnpm transcribe "<file>"`
-This writes `<name>.txt` and `<name>.srt` next to the file, using offline Whisper (the first run takes a few minutes to build it). For a strong accent, more accuracy comes from setting `WHISPER_MODEL=small.en` in `.env`.
+This writes `<name>.txt` and `<name>.srt` next to the file, using offline Whisper (the first run takes a few minutes to build it). The default model is `small.en` (good with Indian-accented English). Videos are in English; Hinglish recordings come back translated, not verbatim.
 
 Measure their pace: count the words in the `.txt` and divide by the minutes, taken from the last timestamp in the `.srt`.
 
