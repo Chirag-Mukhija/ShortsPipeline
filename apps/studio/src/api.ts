@@ -7,6 +7,7 @@ import type {
   EditShot,
   EditState,
   InboxIntent,
+  KitCatalog,
   LibraryCatalog,
   ProjectDetail,
   ProjectSummary,
@@ -80,6 +81,7 @@ export const studio = {
   create: (idea: string, mode: VideoMode, audio: VideoAudio, start = true, picks: { look?: string; music?: string } = {}) =>
     request<VideoDetail>("POST", "/api/studio/videos", { idea, mode, audio, start, look: picks.look ?? "", music: picks.music ?? "" }),
   library: () => request<LibraryCatalog>("GET", "/api/studio/library"),
+  kit: () => request<KitCatalog>("GET", "/api/studio/library/kit"),
   addTrack: (file: File, meta: Record<string, string>) => {
     const form = new FormData();
     form.append("file", file);

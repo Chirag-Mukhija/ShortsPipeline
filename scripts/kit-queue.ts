@@ -1,7 +1,8 @@
 // Builds kit templates unattended, one headless Claude Code run per brief in order: waits out the 5-hour limit and resumes, checks each result itself (typecheck + preview + motion check) and retries a failure once.
 // Usage: apps/server/node_modules/.bin/tsx scripts/kit-queue.ts [add <id>…]   (run under `caffeinate -i` so the Mac stays awake)
+// To stop after the job that's running: touch data/library/kit/queue.stop (removed on the next start).
 import { spawn, execFileSync } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import { interpret, resumeTime, type StreamEvent } from "../apps/server/src/studio/runEvents";
@@ -42,8 +43,23 @@ function prompt(job: Job): string {
   return `Build the kit template "${job.id}". Follow .claude/skills/studio/kit-builder.md exactly; your brief is data/library/kit/briefs/${job.id}.md. Work alone: don't dispatch subagents.${retry}`;
 }
 
+// The builder's report names what it did on its first line; briefs written for one template default to that template.
+function outcome(jobId: string): { kind: "template" | "extended" | "skipped"; id: string } | null {
+  const report = path.join(KIT, "reports", `${jobId}.md`);
+  if (!existsSync(report)) return jobId.startsWith("pm-") ? null : { kind: "template", id: jobId };
+  const first = readFileSync(report, "utf8").split("\n").find((l) => l.trim()) ?? "";
+  const m = /^\s*(template|extended|skipped)\s*:\s*(.+?)\s*$/i.exec(first);
+  if (!m) return jobId.startsWith("pm-") ? null : { kind: "template", id: jobId };
+  return { kind: m[1]!.toLowerCase() as "template" | "extended" | "skipped", id: m[2]!.replace(/[`*]/g, "") };
+}
+
 // What the queue checks itself after a run, so a run that says "done" but left a broken or missing template is caught.
-function verify(id: string): string | null {
+function verify(jobId: string): string | null {
+  const result = outcome(jobId);
+  if (!result) return "no report with a first line of template:/extended:/skipped:";
+  if (result.kind === "skipped") return null;
+  const id = result.id;
+  if (!/^[a-z0-9-]+$/.test(id)) return `the report names an invalid template id "${id}"`;
   const file = path.join(ROOT, "packages/video/src/kit/templates", `${id}.tsx`);
   if (!existsSync(file)) return "the template file was not written";
   if (!readFileSync(path.join(ROOT, "packages/video/src/kit/index.ts"), "utf8").includes(`./templates/${id}"`)) return "the template is not registered in kit/index.ts";
@@ -129,10 +145,15 @@ async function main() {
   // A job left "running" was cut off (reboot, crash): run it again.
   for (const j of q0.jobs) if (j.status === "running") j.status = "queued";
   q0.stoppedBecause = null;
+  rmSync(path.join(KIT, "queue.stop"), { force: true });
   save(q0);
   log(`queue started (pid ${process.pid}), ${q0.jobs.filter((j) => j.status === "queued").length} queued; briefs on disk: ${readdirSync(path.join(KIT, "briefs")).length}`);
 
   for (;;) {
+    if (existsSync(path.join(KIT, "queue.stop"))) {
+      log("stopping: queue.stop is there");
+      break;
+    }
     const q = read();
     if (q.pausedUntil && Date.parse(q.pausedUntil) > Date.now()) {
       await sleep(Math.min(Date.parse(q.pausedUntil) - Date.now(), 10 * 60_000));
@@ -165,8 +186,9 @@ async function main() {
     const problem = verify(job.id);
     if (!problem) {
       j.status = "done";
-      j.note = undefined;
-      log(`${job.id} done ($${(result.cost ?? 0).toFixed(2)} list price)`);
+      const made = outcome(job.id);
+      j.note = made && made.id !== job.id ? `${made.kind}: ${made.id}` : undefined;
+      log(`${job.id} done${j.note ? ` (${j.note})` : ""} ($${(result.cost ?? 0).toFixed(2)} list price${result.weekly != null ? `, weekly usage ${Math.round(result.weekly * 100)}%` : ""})`);
     } else {
       j.note = problem;
       j.status = j.attempts >= MAX_ATTEMPTS ? "failed" : "queued";

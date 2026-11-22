@@ -1,16 +1,17 @@
-// Library page: browse the motion themes (preview stills per entry) and the music tracks, as references while planning a video.
+// Library page: browse the kit templates the queue builds, the motion themes (preview stills per entry) and the music tracks, as references while planning a video.
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { LibraryThemeInfo, MusicTrack } from "@clipforge/schema";
 import { studio } from "../api";
 import { ArrowLeftIcon } from "../components/icons";
 import { Button, Chip, Empty, PageHeader, Tabs } from "../components/ui";
+import { KitTab } from "./LibraryKit";
 
-type Tab = "visuals" | "music";
+type Tab = "templates" | "visuals" | "music";
 
 export function Library() {
   const { data, isLoading } = useQuery({ queryKey: ["library"], queryFn: studio.library, staleTime: 60_000 });
-  const [tab, setTab] = useState<Tab>("visuals");
+  const [tab, setTab] = useState<Tab>("templates");
   const [open, setOpen] = useState<string | null>(null);
   const themes = (data?.themes ?? []).filter((t) => t.slug !== "core");
   const theme = themes.find((t) => t.slug === open);
@@ -23,7 +24,8 @@ export function Library() {
       </PageHeader>
       <Tabs
         items={[
-          { id: "visuals", label: `Visuals · ${themes.length} themes` },
+          { id: "templates", label: "Templates" },
+          { id: "visuals", label: `Themes · ${themes.length}` },
           { id: "music", label: `Music · ${data?.music.length ?? 0}` },
         ]}
         value={tab}
@@ -32,7 +34,9 @@ export function Library() {
           setOpen(null);
         }}
       />
-      {isLoading ? null : tab === "music" ? (
+      {tab === "templates" ? (
+        <KitTab />
+      ) : isLoading ? null : tab === "music" ? (
         <Music tracks={data?.music ?? []} sources={data?.musicSources ?? false} />
       ) : theme ? (
         <ThemeView theme={theme} onBack={() => setOpen(null)} />

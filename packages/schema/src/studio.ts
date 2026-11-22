@@ -99,3 +99,23 @@ export type MusicTrack = {
   file?: string;
 };
 export type LibraryCatalog = { themes: LibraryThemeInfo[]; music: MusicTrack[]; musicSources: boolean };
+
+// The kit as the website shows it: every template the unattended queue has built or will build, with its previews per look and the builder's report.
+export type KitPreview = { look: string; video: string; sheet: string };
+export type KitTemplateInfo = {
+  job: string;
+  template: string;
+  title: string;
+  status: "done" | "building" | "queued" | "failed" | "skipped";
+  outcome: "template" | "extended" | "skipped" | null;
+  credit: { title: string; url: string; author: string } | null;
+  previews: KitPreview[];
+  summary: string;
+  report: string;
+  note: string | null;
+  costUsd: number | null;
+};
+export type KitCatalog = {
+  templates: KitTemplateInfo[];
+  queue: { done: number; building: string | null; queued: number; failed: number; pausedUntil: string | null; stoppedBecause: string | null; costUsd: number };
+};

@@ -27,7 +27,12 @@ Every video is either a **voice-over** (`Audio: voice` in `status.md`, the defau
 - For anything else code can't draw, the packager writes a ready-to-paste prompt, and the creator generates the image in a cloud model such as Gemini.
 - A local image model is a maybe, for much later.
 
-Current focus: the creator is testing stages 1–5 (idea to the recorded voice-over) on their own topics before anything is built further. Build one step at a time, never ahead. The first production attempt (edit, motion graphics) is parked on the git branch `archive/production-attempt`.
+Current focus (2026-11-22): the edit stage is being rebuilt on **templates + a timeline**, replacing bespoke per-beat animation code (video 001 showed it was too costly, glitchy and repetitive). The plan is `docs/NEXT-BUILD.md`:
+1. timeline + renderer
+2. planner (Sonnet)
+3. script board → draft cut, and four gates (Plan, Script, Record, Cut, then Package)
+
+The visual mix with face cam is face 40–50%, theme graphics 30–40%, footage 20–30%. Footage is treated as material, never boxed. Build one step at a time, never ahead; the creator tests each step.
 
 Every video has a `status.md`. Update it after each stage and log every creative decision the creator makes. Downstream agents must respect those decisions.
 
@@ -55,7 +60,8 @@ Every video has a `status.md`. Update it after each stage and log every creative
 ## Code map
 - `apps/server`: media services (render, ffmpeg, local Whisper, YouTube upload) and the older Shorts pipeline
 - `apps/studio`: the web UI
-- `packages/video`: the Remotion video engine
+- `packages/video`: the Remotion video engine. `src/kit/` holds the scene templates a timeline uses (contract in `kit/contract.ts`; built unattended by `scripts/kit-queue.ts` from `data/library/kit/briefs/`, rules in `.claude/skills/studio/kit-builder.md`). `src/library/` holds the 32 visual themes: reference and inspiration only.
+- `scripts/motion-qa.mjs <video>`: checks any render for shake, flashes, black and frozen frames. Run it on every render.
 - `packages/schema`: shared types
 - Commands: `pnpm dev`, `pnpm test`, `pnpm typecheck`, `pnpm transcribe <file>` (writes `.txt` + `.srt`), `pnpm setup:denoise` (installs DeepFilterNet for the Record page's noise cleanup; without it, ffmpeg's filter is used)
 - Code style: every file starts with a one-line comment stating its responsibility. Other comments only for non-obvious decisions.

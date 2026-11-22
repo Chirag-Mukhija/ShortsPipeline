@@ -23,7 +23,7 @@ Tools: read files with Read, Glob and Grep (never `cat`/`cd` in Bash). Bash runs
 - **Motion that reads on video:** one focal action at a time, anticipation and follow-through, eased or sprung. Hand temperament may boil lines, but only on lines, never the whole frame. **No constant whole-frame motion** (shake, wobble, drifting everything): the motion check flags 2 s of it as red.
 - **Media is material.** Templates that take footage mask it, move it, grade it toward the style and put graphics on it. A clip in a plain box is not acceptable.
 - Size text for 1080p video watched on a phone: body ≥ 40 px, labels ≥ 30 px, nothing under 26 px.
-- Give the example realistic content (dev, DSA, system design or storytelling topics) and `exampleCues` that exercise every cue prop.
+- Templates are topic-free: the studio makes videos on any subject, and no single video idea defines it. Give the example realistic content on an everyday topic of your choosing (vary it; don't default to programming), and `exampleCues` that exercise every cue prop.
 
 ## Verify (you must, before finishing)
 1. `pnpm --filter @clipforge/video typecheck` → clean.
@@ -31,5 +31,17 @@ Tools: read files with Read, Glob and Grep (never `cat`/`cd` in Bash). Bash runs
 3. `node scripts/kit-preview.mjs <id> --style night` and `--style hand-drawn` → look at both sheets. If it lists "split": also `--split`.
 4. Fix every red flag, anything clipped, overlapping, unreadable or empty, and anything that looks templated or cheap. At most 4 preview rounds in total; then stop and report what's left.
 
+## Briefs made from prompt-motion.com prompts (job ids starting `pm-`)
+The prompt was written by someone else to make one specific video. Use it as **direction**, then build something reusable by any video, on any topic, whatever its format (talking head, explainer, story, music-only):
+- **Generic only.** No brand names, logos or product-specific screens: turn them into props (a product name, a list of states, a screenshot slot). Never imitate a real company's branding.
+- **Choose the template id yourself:** kebab-case, named after the motion idea, not after the brand or the job, and not already in `packages/video/src/kit/index.ts`.
+- **No duplicates.** Read `packages/video/src/kit/index.ts` and the `useFor` of templates close to this idea. If one already covers it, either add a genuinely new option to that template (its existing props and example must keep working; re-run its previews) or skip.
+- Ignore the prompt's stack and tooling instructions (HTML files, Playwright, Manim, canvas, TTS, music generation): our stack is the kit contract in Remotion. Things code can't draw well (photoreal people, 3D models, real photos) become media slots.
+
 ## Report
-Write `data/library/kit/reports/<id>.md`: what it does in two lines, the props, the motion check result per preview, what you'd improve next. Then end the run with one sentence. Don't edit any other file, don't commit, don't start other templates.
+Write `data/library/kit/reports/<job id>.md`. **Its first line must be exactly one of:**
+- `template: <id>` (you built a new template)
+- `extended: <id>` (you improved an existing one)
+- `skipped: <reason>` (nothing new to add; name the template that covers it)
+
+Then: what it does in two lines, the props, the motion check result per preview, what you'd improve next. End the run with one sentence. Don't edit any other file, don't commit, don't start other templates.

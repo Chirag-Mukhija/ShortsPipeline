@@ -30,6 +30,7 @@ import {
   writeArtifact,
 } from "../studio/videos";
 import { transcribeRecording } from "../tts/whisperAlign";
+import { readKit } from "../studio/kit";
 import { readLibrary } from "../studio/library";
 import { deriveInboxMedia } from "../studio/inboxMedia";
 import { saveSample, voiceStatus } from "../studio/voice";
@@ -178,6 +179,7 @@ studio.post("/studio/transcribe", async (c) => {
 });
 
 studio.get("/studio/library", (c) => c.json(readLibrary()));
+studio.get("/studio/library/kit", (c) => c.json(readKit()));
 
 studio.get("/studio/runner", (c) => c.json(runnerStatus()));
 
