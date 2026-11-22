@@ -8,7 +8,7 @@ const FLOW: { name: string; who: string; does: string; gets: string; gate?: bool
   { name: "Plan", who: "Team, then you", does: "Angle, beat sheet, look, and the title and thumbnail. Sketch beats here.", gets: "plan.md", gate: true },
   { name: "Script", who: "Team, then you", does: "Written in your voice, every claim fact-checked against its source. Music only: a cue sheet instead.", gets: "script.md", gate: true },
   { name: "Record", who: "You", does: "Read off the teleprompter, redo lines, cut by editing text, export. Skipped on music only.", gets: "narration.wav" },
-  { name: "Edit", who: "Team", does: "Graphics, music and the rough cut.", gets: "Coming next", soon: true },
+  { name: "Edit", who: "Team, then you", does: "The team builds every beat's graphics in the chosen theme and assembles a cut. You mix voice and music, redo beats with a note, upload footage and pin notes, then approve.", gets: "preview.mp4" },
 ];
 
 const VIDEO_MAP = [
@@ -26,7 +26,7 @@ const SOUND: { stage: string; voice: string; music: string }[] = [
   { stage: "Plan", voice: "Angle, beat sheet, look and feel.", music: "The look is the centerpiece: palette, type, motion, three style frames to sketch, and a music brief (mood, tempo, energy). No track picked yet." },
   { stage: "Script", voice: "Spoken lines in your voice, with a visual on every beat.", music: "A cue sheet: every shot, text card (with hold time) and music cue, timed. No spoken lines." },
   { stage: "Record", voice: "You record the voice-over.", music: "Skipped. Capture the footage the plan lists instead." },
-  { stage: "Edit", voice: "Cut to your voice's timing.", music: "Cut to the music's beat. Coming next." },
+  { stage: "Edit", voice: "Cut to your voice's timing: every visual lands on its word.", music: "Cut to the music's beat (the beat clock)." },
 ];
 
 const RECORD_MAP = [

@@ -19,7 +19,20 @@ videos/*/takes/
 videos/*/record/takes/
 videos/*/record/trash/
 videos/*/record/*.wav
+videos/*/record/*.mp4
 videos/*/edit/stills/
 
 # Python bytecode from the studio tools.
 __pycache__/
+
+# Temporary one-theme gallery entries made by scripts/library-previews.mjs.
+packages/video/src/library/.preview-*.tsx
+
+# Generated per-video Remotion entries (scripts/assemble.mjs).
+videos/*/edit/.entry.tsx
+
+# Reference repos and videos the creator collects (large; studied locally, never committed).
+gitHubReposRelated/
+
+# Waveform cache the Edit page regenerates.
+videos/*/edit/.waveform.raw

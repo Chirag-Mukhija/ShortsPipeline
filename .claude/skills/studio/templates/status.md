@@ -14,8 +14,8 @@ The showrunner updates this after every stage. Downstream agents read the decisi
 | plan | not started | plan.md, package.md (**creator gate**) |
 | script | not started | script.md, factcheck.md (**creator gate**) |
 | record | not started | record/narration.wav (you record it on the Record page; skipped on a music-only video) |
-| edit + graphics | not built yet | |
-| rough cut | not built yet | (**creator gate**) |
+| edit + graphics | not started | edit/edit.json, edit/scenes/, renders/preview.mp4 (the Edit page) |
+| rough cut | not started | renders/preview.mp4 reviewed on the Edit page (**creator gate**) |
 | package + upload | not built yet | (**creator gate**) |
 
 ## Creator decisions

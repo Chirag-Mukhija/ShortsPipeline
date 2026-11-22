@@ -1,0 +1,963 @@
+1
+00:00:00,120 --> 00:00:03,070
+If you keep switching tech, and AI writes
+
+2
+00:00:03,070 --> 00:00:05,490
+your code anyway, what are you even
+
+3
+00:00:05,490 --> 00:00:05,750
+learning?
+
+4
+00:00:06,330 --> 00:00:07,790
+I don't stop watching either.
+
+5
+00:00:08,020 --> 00:00:10,480
+So basically, in a few months, I went from
+
+6
+00:00:10,480 --> 00:00:13,280
+networking, to a custom protocol, to plot
+
+7
+00:00:13,280 --> 00:00:16,660
+Code, to back end to system design, to AWS
+
+8
+00:00:16,660 --> 00:00:17,520
+and to DevOps.
+
+9
+00:00:17,520 --> 00:00:21,820
+And honestly, most of what I finished
+
+10
+00:00:21,820 --> 00:00:24,220
+along the way, an agent wrote.
+
+11
+00:00:24,220 --> 00:00:24,460
+it.
+
+12
+00:00:25,160 --> 00:00:27,820
+So, if AI can write code, what should I be
+
+13
+00:00:27,820 --> 00:00:28,040
+learning?
+
+14
+00:00:28,250 --> 00:00:29,630
+That's what this video is for.
+
+15
+00:00:29,920 --> 00:00:31,700
+I'm going to walk you through the chain,
+
+16
+00:00:32,000 --> 00:00:34,280
+look at what research says, and tell you
+
+17
+00:00:34,280 --> 00:00:35,660
+what I am doing about it.
+
+18
+00:00:36,180 --> 00:00:40,143
+And I'm still sorting it out myself.
+
+19
+00:00:40,213 --> 00:00:41,903
+Here's how it actually went.
+
+20
+00:00:42,283 --> 00:00:43,823
+I started studying networking.
+
+21
+00:00:43,823 --> 00:00:46,103
+And when you study networking, your mind
+
+22
+00:00:46,103 --> 00:00:46,763
+goes away.
+
+23
+00:00:46,993 --> 00:00:48,843
+so I wanted to build something.
+
+24
+00:00:49,343 --> 00:00:50,103
+custom protocol.
+
+25
+00:00:50,103 --> 00:00:50,483
+maybe.
+
+26
+00:00:50,903 --> 00:00:52,583
+Halfway through that, our YouTube video
+
+27
+00:00:52,583 --> 00:00:55,083
+popped up a new use case for Claude Code.
+
+28
+00:00:55,203 --> 00:00:57,403
+So I bought it, and tried to manage both
+
+29
+00:00:57,403 --> 00:00:57,943
+at once.
+
+30
+00:00:58,523 --> 00:01:00,403
+Then I explored a bit of backend, and
+
+31
+00:01:00,403 --> 00:01:02,363
+backend made me want to jump to system
+
+32
+00:01:02,363 --> 00:01:02,703
+design.
+
+33
+00:01:02,723 --> 00:01:04,563
+And while I was in system design, my
+
+34
+00:01:04,563 --> 00:01:06,443
+interest in the protocol just faded out.
+
+35
+00:01:07,123 --> 00:01:08,343
+Then I saw a video.
+
+36
+00:01:08,723 --> 00:01:12,103
+A 1 to 1 million users scalable API, using
+
+37
+00:01:12,103 --> 00:01:13,283
+most of AWS services.
+
+38
+00:01:13,463 --> 00:01:15,683
+So now I am leaning towards DevOps, and
+
+39
+00:01:15,683 --> 00:01:17,203
+system design is fading out too.
+
+40
+00:01:17,503 --> 00:01:19,403
+The thing is, every switch started the
+
+41
+00:01:19,403 --> 00:01:19,863
+same way.
+
+42
+00:01:19,923 --> 00:01:21,443
+A video, or a new use case.
+
+43
+00:01:21,503 --> 00:01:22,283
+Nothing planned.
+
+44
+00:01:22,323 --> 00:01:24,163
+And the next video is always right there.
+
+45
+00:01:24,823 --> 00:01:26,523
+Now the part I have to admit.
+
+46
+00:01:26,663 --> 00:01:28,723
+I tried to finish something substantial,
+
+47
+00:01:29,023 --> 00:01:31,523
+just to get the feeling of relief after a
+
+48
+00:01:31,523 --> 00:01:31,723
+switch.
+
+49
+00:01:32,183 --> 00:01:34,523
+But mostly, I let coding agents like
+
+50
+00:01:34,523 --> 00:01:35,543
+Claude finish it.
+
+51
+00:01:35,983 --> 00:01:38,523
+And honestly, I think I was running from
+
+52
+00:01:38,523 --> 00:01:39,123
+the hard work.
+
+53
+00:01:39,263 --> 00:01:41,903
+I had already switched, and going back to
+
+54
+00:01:41,903 --> 00:01:44,123
+do it myself was hard.
+
+55
+00:01:44,433 --> 00:01:45,653
+So when I say I have "finished"
+
+56
+00:01:45,653 --> 00:01:46,313
+something...
+
+57
+00:01:46,533 --> 00:01:48,913
+honestly, I am not sure that counts as
+
+58
+00:01:48,913 --> 00:01:49,553
+learning it.
+
+59
+00:01:49,813 --> 00:01:52,143
+Looking back, I did feel some of it
+
+60
+00:01:52,143 --> 00:01:53,783
+carried over between the topics.
+
+61
+00:01:54,113 --> 00:01:55,853
+So, is switching itself bad?
+
+62
+00:01:56,433 --> 00:01:58,893
+Honest answer: I couldn't find a study on
+
+63
+00:01:58,893 --> 00:01:59,173
+it.
+
+64
+00:01:59,433 --> 00:02:01,573
+Nobody I found compared the people who
+
+65
+00:02:01,573 --> 00:02:04,553
+stick with one stack for a year against
+
+66
+00:02:04,553 --> 00:02:06,833
+people who keep sampling, for self taught
+
+67
+00:02:06,833 --> 00:02:07,933
+learners like us.
+
+68
+00:02:08,143 --> 00:02:10,943
+The closest thing I found is from 2002.
+
+69
+00:02:11,263 --> 00:02:14,443
+An economist, laser, used Stanford alumni
+
+70
+00:02:14,443 --> 00:02:16,953
+data and found that having worked across
+
+71
+00:02:16,953 --> 00:02:18,993
+many different roles was the strongest
+
+72
+00:02:18,993 --> 00:02:22,453
+predictor of who went on to become an
+
+73
+00:02:22,453 --> 00:02:22,993
+entrepreneur.
+
+74
+00:02:23,573 --> 00:02:25,673
+But that's about founders, not employees.
+
+75
+00:02:26,313 --> 00:02:28,193
+So I'm not going to tell you journalists
+
+76
+00:02:28,193 --> 00:02:28,653
+win.
+
+77
+00:02:28,953 --> 00:02:30,133
+It doesn't say that.
+
+78
+00:02:30,473 --> 00:02:33,053
+What it does tell me that switching, by
+
+79
+00:02:33,053 --> 00:02:35,413
+itself, isn't proof that you are failing.
+
+80
+00:02:35,763 --> 00:02:39,193
+And staying on one thing for an year isn't
+
+81
+00:02:39,193 --> 00:02:40,553
+proven safe either.
+
+82
+00:02:40,553 --> 00:02:44,293
+When I say "a year on one thing", that's
+
+83
+00:02:44,293 --> 00:02:45,873
+my judgment, not a finding.
+
+84
+00:02:46,043 --> 00:02:48,793
+So the real question isn't how many times
+
+85
+00:02:48,793 --> 00:02:49,293
+I switched.
+
+86
+00:02:49,653 --> 00:02:51,373
+It's what I learned each time.
+
+87
+00:02:51,373 --> 00:02:54,733
+And that's where AI comes in.
+
+88
+00:02:55,073 --> 00:02:57,553
+Entropic ran a trial on exactly this.
+
+89
+00:02:57,813 --> 00:03:00,573
+52 engineers, mostly juniors, learned a
+
+90
+00:03:00,573 --> 00:03:02,613
+new Python library called Trio.
+
+91
+00:03:03,073 --> 00:03:05,013
+Some had an AI assistant.
+
+92
+00:03:05,233 --> 00:03:06,393
+Some coded by hand.
+
+93
+00:03:06,893 --> 00:03:08,933
+Then everyone took a quiz, right after.
+
+94
+00:03:09,313 --> 00:03:10,313
+Disclosure first.
+
+95
+00:03:10,513 --> 00:03:13,173
+Entropic makes Claude, and use Claude
+
+96
+00:03:13,173 --> 00:03:13,473
+Code.
+
+97
+00:03:13,913 --> 00:03:15,573
+survey that however you want.
+
+98
+00:03:16,093 --> 00:03:19,253
+The AI group averaged 50% on the quiz.
+
+99
+00:03:19,613 --> 00:03:21,753
+The hand coding group, 67%.
+
+100
+00:03:22,143 --> 00:03:23,903
+The biggest gap was on debugging.
+
+101
+00:03:24,263 --> 00:03:26,283
+And the AI group was about 2 minutes
+
+102
+00:03:26,283 --> 00:03:28,523
+faster, but the gap wasn't statistically
+
+103
+00:03:28,523 --> 00:03:29,143
+significant.
+
+104
+00:03:29,433 --> 00:03:31,053
+Here's the part that matters to me.
+
+105
+00:03:31,173 --> 00:03:33,673
+The lowest score under 40%, handed the
+
+106
+00:03:33,673 --> 00:03:37,073
+work to the AI, or learned on it more and
+
+107
+00:03:37,073 --> 00:03:37,293
+more.
+
+108
+00:03:37,513 --> 00:03:39,393
+The people who asked conceptual question
+
+109
+00:03:39,393 --> 00:03:41,713
+or asked for explanation along with the
+
+110
+00:03:41,713 --> 00:03:43,593
+code, averaged 65% or more.
+
+111
+00:03:43,893 --> 00:03:45,733
+Now the limits, because they are real.
+
+112
+00:03:46,113 --> 00:03:48,833
+Small sample, and a quiz straight after
+
+113
+00:03:48,833 --> 00:03:49,313
+the task.
+
+114
+00:03:49,713 --> 00:03:52,793
+The assistant was a sidebar chart, not an
+
+115
+00:03:52,793 --> 00:03:55,453
+agent like Claude Code, which is what I
+
+116
+00:03:55,453 --> 00:03:55,753
+use.
+
+117
+00:03:56,433 --> 00:03:58,493
+And the study can't prove the way people
+
+118
+00:03:58,493 --> 00:03:59,133
+use it.
+
+119
+00:03:59,573 --> 00:04:00,353
+Cause the difference.
+
+120
+00:04:00,713 --> 00:04:02,293
+So I'm not saying AI makes you worse.
+
+121
+00:04:02,493 --> 00:04:04,593
+I'm saying how you use it seems to matter
+
+122
+00:04:04,593 --> 00:04:04,973
+a lot.
+
+123
+00:04:05,633 --> 00:04:07,233
+And honestly, that's uncomfortable,
+
+124
+00:04:07,153 --> 00:04:09,773
+because most of what I finish is made by
+
+125
+00:04:09,773 --> 00:04:10,053
+agents.
+
+126
+00:04:10,333 --> 00:04:11,553
+So I'm contradicting myself.
+
+127
+00:04:11,753 --> 00:04:14,733
+Out of the whole chain, there's one link I
+
+128
+00:04:14,733 --> 00:04:15,313
+never dropped.
+
+129
+00:04:15,973 --> 00:04:16,213
+TSA.
+
+130
+00:04:16,833 --> 00:04:18,713
+Data structures and algorithm, I've stuck
+
+131
+00:04:18,713 --> 00:04:19,733
+with it since the start.
+
+132
+00:04:20,333 --> 00:04:21,153
+And here's why.
+
+133
+00:04:21,153 --> 00:04:23,593
+I believe it'll stay relevant for at least
+
+134
+00:04:23,593 --> 00:04:26,793
+the next five or six years, because it's
+
+135
+00:04:26,793 --> 00:04:28,713
+how someone's thinking process and problem
+
+136
+00:04:28,713 --> 00:04:30,433
+solving skills gets checked.
+
+137
+00:04:30,783 --> 00:04:31,583
+That's my bet.
+
+138
+00:04:31,743 --> 00:04:33,783
+It's not a fact, and I don't have a study
+
+139
+00:04:33,783 --> 00:04:34,223
+for it.
+
+140
+00:04:34,363 --> 00:04:36,963
+I'm telling you what I'm sure about, not
+
+141
+00:04:36,963 --> 00:04:37,443
+what's proven.
+
+142
+00:04:37,793 --> 00:04:41,513
+The reason I mentioned it is not goal on
+
+143
+00:04:41,513 --> 00:04:41,793
+DSA".
+
+144
+00:04:42,113 --> 00:04:44,733
+It's that one of everything I touched,
+
+145
+00:04:44,873 --> 00:04:47,213
+it's the one thing I'm sure about.
+
+146
+00:04:47,473 --> 00:04:49,533
+Nothing guarantees it will pay off.
+
+147
+00:04:49,753 --> 00:04:52,093
+But when I asked myself what I'd bet on,
+
+148
+00:04:52,573 --> 00:04:53,493
+that's what I picked.
+
+149
+00:04:53,793 --> 00:04:55,773
+Here's what I noticed about the chain.
+
+150
+00:04:56,213 --> 00:04:59,853
+My thinking chain, the tool names kept
+
+151
+00:04:59,853 --> 00:05:00,353
+changing.
+
+152
+00:05:00,893 --> 00:05:03,093
+The thinking underneath didn't.
+
+153
+00:05:03,133 --> 00:05:05,553
+Breaking a problem down, working out why
+
+154
+00:05:05,553 --> 00:05:06,313
+something broke.
+
+155
+00:05:06,473 --> 00:05:08,833
+That's why the debugging gap in the study
+
+156
+00:05:08,833 --> 00:05:09,653
+stuck with me.
+
+157
+00:05:09,923 --> 00:05:11,423
+Does practice fix everything?
+
+158
+00:05:11,943 --> 00:05:12,243
+No.
+
+159
+00:05:12,883 --> 00:05:15,663
+A meta analyst of 88 students found that
+
+160
+00:05:15,663 --> 00:05:19,403
+practice explained 26% of differences in
+
+161
+00:05:19,403 --> 00:05:22,763
+performance in games, 21% in music, 18% in
+
+162
+00:05:22,763 --> 00:05:26,083
+sports, 4% in education, and under 1% in
+
+163
+00:05:26,083 --> 00:05:26,443
+profession.
+
+164
+00:05:26,723 --> 00:05:28,563
+Software engineering wasn't one of the
+
+165
+00:05:28,563 --> 00:05:30,578
+areas they looked at.
+
+166
+00:05:30,708 --> 00:05:32,938
+The way the study's press release summed
+
+167
+00:05:32,938 --> 00:05:34,938
+it up: practice won't make everyone
+
+168
+00:05:34,938 --> 00:05:37,378
+perfect, but it will make almost everyone
+
+169
+00:05:37,378 --> 00:05:37,698
+better.
+
+170
+00:05:38,078 --> 00:05:39,058
+So practice helps.
+
+171
+00:05:39,678 --> 00:05:40,558
+It isn't magic.
+
+172
+00:05:40,908 --> 00:05:41,868
+So what does help?
+
+173
+00:05:42,208 --> 00:05:44,468
+A big review of 10 study techniques found
+
+174
+00:05:44,468 --> 00:05:46,928
+that testing yourself and spacing out the
+
+175
+00:05:46,928 --> 00:05:49,478
+practice rated higher, re reading and
+
+176
+00:05:49,478 --> 00:05:51,098
+highlighting rated low.
+
+177
+00:05:51,418 --> 00:05:53,958
+Mostly students and school materials so
+
+178
+00:05:53,958 --> 00:05:57,158
+using it for AWS or protocols is my
+
+179
+00:05:57,158 --> 00:05:58,598
+extension, not a result.
+
+180
+00:05:58,848 --> 00:06:02,048
+And on AI: 64% of developers use AI to
+
+181
+00:06:02,048 --> 00:06:06,068
+learn, up from 44% year before.
+
+182
+00:06:06,468 --> 00:06:08,468
+But only 1% use it alone.
+
+183
+00:06:08,708 --> 00:06:10,788
+Most pair it with other things, like
+
+184
+00:06:10,788 --> 00:06:11,308
+documentation.
+
+185
+00:06:11,628 --> 00:06:13,108
+So here are 3 rules.
+
+186
+00:06:13,408 --> 00:06:15,288
+They are what I am trying, they are not
+
+187
+00:06:15,288 --> 00:06:15,708
+guaranteed.
+
+188
+00:06:16,268 --> 00:06:16,508
+One.
+
+189
+00:06:16,728 --> 00:06:18,548
+Ask AI to explain, not just to do.
+
+190
+00:06:18,668 --> 00:06:23,148
+Same task, two is, If I ask "do it", I get
+
+191
+00:06:23,148 --> 00:06:23,468
+the code.
+
+192
+00:06:23,728 --> 00:06:26,848
+If I ask "explain me why, then I'll write
+
+193
+00:06:26,848 --> 00:06:29,248
+it", I get something to type and think
+
+194
+00:06:29,248 --> 00:06:29,508
+about.
+
+195
+00:06:29,748 --> 00:06:33,168
+That closer, That's closer to the people
+
+196
+00:06:33,168 --> 00:06:35,228
+who scored high in the study, though
+
+197
+00:06:35,228 --> 00:06:37,348
+remember, it can't prove cause.
+
+198
+00:06:38,048 --> 00:06:38,168
+2.
+
+199
+00:06:38,548 --> 00:06:40,468
+Before you move on, try it again without
+
+200
+00:06:40,468 --> 00:06:40,788
+air.
+
+201
+00:06:41,368 --> 00:06:43,148
+Close the chart and write it from memory.
+
+202
+00:06:43,398 --> 00:06:45,498
+That's testing yourself, and doing it
+
+203
+00:06:45,588 --> 00:06:48,968
+again tomorrow and next week is spacing it
+
+204
+00:06:48,968 --> 00:06:49,168
+out.
+
+205
+00:06:49,768 --> 00:06:52,708
+The study behind that you students saw.
+
+206
+00:06:53,308 --> 00:06:54,748
+this is my version of it.
+
+207
+00:06:55,268 --> 00:06:56,408
+3.
+
+208
+00:06:56,968 --> 00:06:59,328
+When a shiny new idea shows up, and it
+
+209
+00:06:59,328 --> 00:07:01,208
+will, because the next video is always
+
+210
+00:07:01,208 --> 00:07:04,008
+right up there, don't chase it don't just
+
+211
+00:07:04,008 --> 00:07:04,828
+ignore it.
+
+212
+00:07:04,948 --> 00:07:07,868
+Write a short plan for it, Imparted.
+
+213
+00:07:07,948 --> 00:07:09,988
+In lab studies, people who made a specific
+
+214
+00:07:09,988 --> 00:07:12,628
+plan for an unfinished goal found it
+
+215
+00:07:12,628 --> 00:07:15,308
+stopped interfering with what they did
+
+216
+00:07:15,308 --> 00:07:15,728
+next.
+
+217
+00:07:16,408 --> 00:07:18,488
+Those were lab studies, not about
+
+218
+00:07:18,488 --> 00:07:19,168
+programming, though.
+
+219
+00:07:19,708 --> 00:07:21,208
+so take it as a nudge.
+
+220
+00:07:21,388 --> 00:07:22,808
+Then I go back to main 10.
+
+221
+00:07:22,728 --> 00:07:24,248
+That's it.
+
+222
+00:07:24,488 --> 00:07:27,648
+So, what's my answer "if AI can code, what
+
+223
+00:07:27,648 --> 00:07:28,448
+should be I learning"?
+
+224
+00:07:28,848 --> 00:07:31,008
+Honestly, I'm still sorting things out
+
+225
+00:07:31,008 --> 00:07:31,568
+myself.
+
+226
+00:07:31,928 --> 00:07:32,808
+Nothing is guaranteed.
+
+227
+00:07:33,428 --> 00:07:34,808
+But you can improve your odds.
+
+228
+00:07:35,388 --> 00:07:36,088
+One main thing.
+
+229
+00:07:36,488 --> 00:07:39,148
+Small, real things that you can actually
+
+230
+00:07:39,148 --> 00:07:39,468
+finish.
+
+231
+00:07:39,968 --> 00:07:41,608
+Test yourself, and space it out.
+
+232
+00:07:41,808 --> 00:07:43,568
+Ask air to explain, not just to do.
+
+233
+00:07:43,568 --> 00:07:43,868
+it.
+
+234
+00:07:44,208 --> 00:07:46,148
+Impart the new ideas instead of chasing
+
+235
+00:07:46,148 --> 00:07:46,508
+them.
+
+236
+00:07:46,508 --> 00:07:48,028
+and leaving others behind.
+
+237
+00:07:48,348 --> 00:07:50,548
+That's the answer I promised you.
+
+238
+00:07:50,768 --> 00:07:51,628
+Not a tool being.
+
+239
+00:07:52,148 --> 00:07:53,008
+a way of learning.
+
+240
+00:07:53,338 --> 00:07:56,278
+And I've got a chain like mine, tell me in
+
+241
+00:07:56,278 --> 00:07:58,138
+comments where you are

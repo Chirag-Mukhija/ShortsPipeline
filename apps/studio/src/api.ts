@@ -2,7 +2,12 @@
 import type {
   Cleanup,
   CutReason,
+  EditMix,
+  EditNote,
+  EditShot,
+  EditState,
   InboxIntent,
+  LibraryCatalog,
   ProjectDetail,
   ProjectSummary,
   RecordState,
@@ -17,7 +22,7 @@ import type {
   VoiceStatus,
 } from "@clipforge/schema";
 
-async function raw<T>(path: string, body: ArrayBuffer): Promise<T> {
+async function raw<T>(path: string, body: ArrayBuffer | Blob): Promise<T> {
   const response = await fetch(path, { method: "POST", headers: { "content-type": "application/octet-stream" }, body });
   const data = (await response.json().catch(() => ({}))) as T & { error?: string };
   if (!response.ok) throw new Error(data.error ?? `POST ${path} failed (${response.status})`);
@@ -72,7 +77,32 @@ export const studio = {
   login: (passcode: string) => request<{ ok: true }>("POST", "/api/auth", { passcode }),
   videos: () => request<VideoSummary[]>("GET", "/api/studio/videos"),
   video: (id: string) => request<VideoDetail>("GET", video(id)),
-  create: (idea: string, mode: VideoMode, audio: VideoAudio, start = true) => request<VideoDetail>("POST", "/api/studio/videos", { idea, mode, audio, start }),
+  create: (idea: string, mode: VideoMode, audio: VideoAudio, start = true, picks: { look?: string; music?: string } = {}) =>
+    request<VideoDetail>("POST", "/api/studio/videos", { idea, mode, audio, start, look: picks.look ?? "", music: picks.music ?? "" }),
+  library: () => request<LibraryCatalog>("GET", "/api/studio/library"),
+  addTrack: (file: File, meta: Record<string, string>) => {
+    const form = new FormData();
+    form.append("file", file);
+    for (const [k, v] of Object.entries(meta)) form.append(k, v);
+    return upload<LibraryCatalog>("/api/studio/library/music", form);
+  },
+  edit: (id: string) => request<EditState>("GET", `${video(id)}/edit`),
+  patchEdit: (
+    id: string,
+    patch: { mix?: Partial<EditMix>; duration?: number; music?: { trackId: string } | null; beats?: { id: string; end?: number; label?: string; status?: string }[]; footage?: { id: string; in?: number; out?: number; speed?: number; crop?: { x: number; y: number; w: number; h: number } }[]; shots?: { beat: string; list: EditShot[] } },
+  ) => request<EditState>("PATCH", `${video(id)}/edit`, patch),
+  render: (id: string, kind: "preview" | "final" | "stills" | "animatic", beat?: string) => request<EditState>("POST", `${video(id)}/edit/render`, { kind, beat }),
+  redoBeat: (id: string, beat: string, note: string) => request<EditState>("POST", `${video(id)}/edit/beats/${beat}/regenerate`, { note }),
+  restoreTake: (id: string, beat: string, take: string) => request<EditState>("POST", `${video(id)}/edit/beats/${beat}/takes/${take}/restore`),
+  saveNotes: (id: string, notes: EditNote[]) => request<EditState>("PUT", `${video(id)}/edit/notes`, notes),
+  sendNotes: (id: string) => request<EditState>("POST", `${video(id)}/edit/send-notes`),
+  approveStoryboard: (id: string) => request<EditState>("POST", `${video(id)}/edit/storyboard/approve`),
+  approveCut: (id: string) => request<EditState>("POST", `${video(id)}/edit/approve`),
+  uploadFootage: (id: string, slot: string, file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    return upload<EditState>(`${video(id)}/edit/footage/${encodeURIComponent(slot)}`, form);
+  },
   file: async (id: string, path: string): Promise<string> => {
     const response = await fetch(`${video(id)}/file?path=${encodeURIComponent(path)}`);
     if (!response.ok) throw new Error(`Couldn't open ${path}`);
@@ -103,6 +133,7 @@ export const studio = {
   record: (id: string) => request<RecordState>("GET", `/api/studio/videos/${id}/record`),
   startTake: (id: string, rate: number, from: number) => request<{ take: string }>("POST", `/api/studio/videos/${id}/record/takes`, { rate, from }),
   sendChunk: (id: string, take: string, pcm: ArrayBuffer) => raw<{ ok: true }>(`/api/studio/videos/${id}/record/takes/${take}/chunk`, pcm),
+  sendVideoChunk: (id: string, take: string, piece: Blob) => raw<{ ok: true }>(`/api/studio/videos/${id}/record/takes/${take}/video`, piece),
   finishTake: (id: string, take: string) => request<RecordState>("POST", `/api/studio/videos/${id}/record/takes/${take}/finish`),
   retranscribe: (id: string, take: string) => request<RecordState>("POST", `/api/studio/videos/${id}/record/takes/${take}/retranscribe`),
   setCleanup: (id: string, cleanup: Cleanup) => request<RecordState>("PUT", `/api/studio/videos/${id}/record/cleanup`, { cleanup }),

@@ -1,14 +1,16 @@
-// The record page: read the script off a teleprompter that follows your voice, record takes and pickups (with a warning when the mic glitches), cut by text, clean background noise, then export the voice-over for the edit stage.
+// The record page: read the script off a teleprompter that follows your voice, record takes and pickups with optional face cam (with a warning when the mic glitches), cut by text, clean background noise, then export the voice-over and face cam for the edit stage.
 import { coverage as coverageOf, type Cleanup, type CutReason, type RecordState } from "@clipforge/schema";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { studio } from "../api";
 import { EditView, clock } from "../components/record/EditView";
+import { CameraPanel } from "../components/record/CameraPanel";
 import { MicPanel } from "../components/record/MicPanel";
 import { Teleprompter } from "../components/record/Teleprompter";
 import { Button, Empty } from "../components/ui";
 import { ArrowLeftIcon, RefreshIcon } from "../components/icons";
 import { hrefOf } from "../hooks";
+import { Camera, listCameras, type CamWriter } from "../record/camera";
 import { Mic, listMics, type TakeWriter } from "../record/mic";
 
 type Phase = "idle" | "countdown" | "recording" | "saving";
@@ -55,6 +57,11 @@ export function RecordPage({ id }: { id: string }) {
   const [focusTake, setFocusTake] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const writer = useRef<TakeWriter | null>(null);
+  const [camera, setCamera] = useState<Camera | null>(null);
+  const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
+  const [camError, setCamError] = useState<string | null>(null);
+  const cameraRef = useRef<Camera | null>(null);
+  const camWriter = useRef<CamWriter | null>(null);
   const micRef = useRef<Mic | null>(null);
   const cursorRef = useRef(0);
   const saveTimers = useRef(new Map<string, number>());
@@ -86,6 +93,30 @@ export function RecordPage({ id }: { id: string }) {
   }, []);
 
   useEffect(() => () => micRef.current?.close(), []);
+
+  const openCamera = useCallback(async (deviceId: string | null) => {
+    setCamError(null);
+    try {
+      cameraRef.current?.close();
+      const next = await Camera.open(deviceId);
+      cameraRef.current = next;
+      setCamera(next);
+      if (next.deviceId) store("camera", next.deviceId);
+      store("cameraOn", "on");
+      setCameras(await listCameras());
+    } catch (err) {
+      cameraRef.current = null;
+      setCamera(null);
+      setCamError(err instanceof Error && err.name === "NotAllowedError" ? "The browser blocked the camera. Allow it in the address bar, then try again." : String(err instanceof Error ? err.message : err));
+    }
+  }, []);
+  const closeCamera = useCallback(() => {
+    cameraRef.current?.close();
+    cameraRef.current = null;
+    setCamera(null);
+    store("cameraOn", "off");
+  }, []);
+  useEffect(() => () => cameraRef.current?.close(), []);
 
   useEffect(() => {
     if (phase !== "recording" && phase !== "countdown") return;
@@ -139,6 +170,15 @@ export function RecordPage({ id }: { id: string }) {
     }
     try {
       writer.current = await mic.startTake(id, cursorRef.current);
+      // The camera starts right after the voice; the server measures the exact offset afterwards, so a few ms of start-up don't matter.
+      if (cameraRef.current) {
+        try {
+          camWriter.current = cameraRef.current.start(id, writer.current.id, mic.track);
+        } catch (err) {
+          camWriter.current = null;
+          setNotice({ tone: "bad", text: `Recording voice only: the camera couldn't start (${err instanceof Error ? err.message : String(err)}).` });
+        }
+      }
       setElapsed(0);
       setPhase("recording");
     } catch (err) {
@@ -150,10 +190,16 @@ export function RecordPage({ id }: { id: string }) {
   const stopRecording = useCallback(async () => {
     const take = mic?.stopTake() ?? writer.current;
     writer.current = null;
-    if (!take) return setPhase("idle");
+    const cam = camWriter.current;
+    camWriter.current = null;
+    if (!take) {
+      await cam?.finish().catch(() => undefined);
+      return setPhase("idle");
+    }
     setPhase("saving");
+    let camProblem: string | null = null;
     try {
-      await take.finish();
+      await Promise.all([take.finish(), cam?.finish().catch((err: unknown) => void (camProblem = err instanceof Error ? err.message : String(err)))]);
       const before = new Set(rec?.takes.map((t) => t.id));
       const state = await studio.finishTake(id, take.id);
       setState(state);
@@ -171,7 +217,9 @@ export function RecordPage({ id }: { id: string }) {
         setNotice(
           glitches
             ? { tone: "bad", text: `Take saved (${clock(added.duration)}), but the mic glitched in ${glitches} place${glitches > 1 ? "s" : ""} (from ${added.glitches!.map(([from]) => clock(from)).join(", ")}). They're marked red in Edit: listen, and record those lines again.` }
-            : { tone: "good", text: `Take saved (${clock(added.duration)}).${parts.length ? ` I ${parts.join(", ")}.` : ""} Check it in Edit.` },
+            : camProblem || (cam && !added.video)
+              ? { tone: "bad", text: `Take saved (${clock(added.duration)}), but its face cam ${camProblem ? `didn't fully upload: ${camProblem}` : "couldn't be processed"}. The voice is fine; record again if you need the video.` }
+              : { tone: "good", text: `Take saved (${clock(added.duration)})${added.video ? " with face cam" : ""}.${parts.length ? ` I ${parts.join(", ")}.` : ""} Check it in Edit.` },
         );
         const lastKept = [...added.words].reverse().find((w) => !w.cut && w.idx !== null);
         if (lastKept?.idx != null) setCursor(Math.min(state.script.words.length - 1, lastKept.idx + 1));
@@ -312,7 +360,16 @@ export function RecordPage({ id }: { id: string }) {
     setExporting(true);
     try {
       setState(await studio.exportNarration(id, true));
-      setNotice({ tone: "good", text: "Voice-over exported. Listen to the final file below the takes." });
+      const done = await studio.record(id);
+      const camTakes = done.takes.filter((t) => t.video).length;
+      setNotice({
+        tone: "good",
+        text: done.exported?.facecam
+          ? "Voice-over and face cam exported, cut the same way. Listen to the voice below the takes; the face cam is in record/facecam.mp4."
+          : camTakes > 0
+            ? "Voice-over exported. No face cam this time: some of the takes used have no camera, so it would have gaps. Re-record those lines with the camera on."
+            : "Voice-over exported. Listen to the final file below the takes.",
+      });
       void client.invalidateQueries({ queryKey: ["video", id] });
     } catch (err) {
       setNotice({ tone: "bad", text: err instanceof Error ? err.message : String(err) });
@@ -463,6 +520,24 @@ export function RecordPage({ id }: { id: string }) {
             )}
           </section>
 
+          <section className="rounded-xl border border-line bg-panel p-3">
+            <h2 className="eyebrow mb-3">Face cam</h2>
+            {canRecord ? (
+              <CameraPanel
+                camera={camera}
+                devices={cameras}
+                disabled={busy}
+                error={camError}
+                recording={phase === "recording" && camWriter.current !== null}
+                onTurnOn={() => void openCamera(stored("camera"))}
+                onTurnOff={closeCamera}
+                onSelect={(deviceId) => void openCamera(deviceId)}
+              />
+            ) : (
+              <p className="text-xs text-warn">The camera needs the same secure address as the microphone.</p>
+            )}
+          </section>
+
           <section className={`rounded-xl border p-3 ${phase === "recording" ? "border-bad/60 bg-bad/10" : "border-line bg-panel"}`}>
             {phase === "recording" ? (
               <div className="mb-2 flex items-center justify-between text-sm">
@@ -530,7 +605,8 @@ export function RecordPage({ id }: { id: string }) {
                         setFocusTake(take.id);
                       }}
                     >
-                      <span className="font-semibold">Take {n + 1}</span> · {clock(take.duration)} ·{" "}
+                      <span className="font-semibold">Take {n + 1}</span>
+                      {take.video ? <span className={`ml-1 rounded px-1 font-mono text-[10px] ${take.video.synced ? "bg-good/15 text-good" : "bg-warn/15 text-warn"}`} title={take.video.synced ? "Face cam, synced to the voice" : "Face cam, but its sync couldn't be measured"}>CAM</span> : null} · {clock(take.duration)} ·{" "}
                       {first ? (first === last ? `Beat ${first}` : `Beats ${first}–${last}`) : "nothing kept"}
                       <span className="block text-dim">
                         {kept} of {take.words.length} words kept

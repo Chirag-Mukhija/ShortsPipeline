@@ -22,6 +22,8 @@ Read the mode from the prompt's `[studio-run ...]` tag, or from the `Mode:` line
 - **chat**: the creator is in this conversation. Ask with AskUserQuestion.
 - **gated**: launched by the studio website, and nobody can answer mid-run. When the creator must **choose**, write `<folder>/questions.json`. When they only need to **approve** a finished gate, skip questions.json. Either way, set the stage to `waiting for creator` in status.md and end the run; the website shows Approve and Notes buttons. Format:
   `{"stage": "plan", "asked": "<ISO date>", "questions": [{"id": "angle", "question": "...", "header": "<=12 chars", "multiSelect": false, "options": [{"label": "...", "description": "..."}]}]}`
+  On a website run, Bash runs only the studio's own scripts. Read files such as edit.json and status.md with Read or Grep; a one-off `node -e` or `python -c` is blocked.
+  A website run ends the moment you write your final answer, and any subagent still working is killed with it. So never end a run while a subagent is out: wait for every result, then write status.md, then answer.
   The website writes their answers into status.md as creator decisions and removes `questions.json`. The next run starts automatically: read the answers there and carry on. An approval appears as `<stage>: APPROVED by the creator`, with the stage already marked done. Change requests appear as the stage state `needs changes`, with the notes in the decisions; redo that stage with them.
 - **autonomous**: the creator has delegated the creative calls. At every gate, decide yourself:
   - base each decision on the brief's evidence, the creator's profile and their logged decisions
@@ -43,7 +45,9 @@ Read only the playbook for the stage you are running:
 | plan | `stages/plan.md` | plan.md + package.md, **creator gate** |
 | script | `stages/script.md` | script.md + factcheck.md, **creator gate** (a cue sheet on a music-only video) |
 | record | the creator, on the website's Record page | no agent work: tell the creator to open the Record page (teleprompter, takes, cut by text, export). It writes `record/narration.wav`, `narration.json` (word timings), `narration.srt` and `transcript.md`, and marks the stage done. `transcript.md` is what was actually said, so it wins over `script.md` wherever they differ. On a music-only video the state is `skipped` and nothing is recorded |
-| edit, rough cut, package, upload | not built yet | tell the creator this stage is coming in a later build step |
+| edit + graphics | `stages/edit.md` | edit/edit.json, every beat built by the motion designer and checked by its stills, renders/preview.mp4 assembled |
+| rough cut | `stages/edit.md` ("Rough-cut notes") | the creator reviews on the website's Edit page: approves, or pins notes that send single beats back (**creator gate**) |
+| package, upload | not built yet | tell the creator this stage is coming in a later build step |
 
 ## Every stage, every time
 - **Before:** read `status.md`. The creator's decisions there override everything else, including this playbook.

@@ -11,6 +11,7 @@ import { StepError, errorMessage } from "./pipeline/errors";
 import { startRunner } from "./pipeline/runner";
 import { api } from "./routes/api";
 import { recordings } from "./routes/recordings";
+import { edit } from "./routes/edit";
 import { studio } from "./routes/studio";
 import { assertSafeHost, isAuthed, login, requireStudioAuth } from "./studio/auth";
 import { startStudioRunner } from "./studio/runner";
@@ -18,7 +19,7 @@ import { VIDEOS_DIR, VIDEO_FILES_PREFIX } from "./studio/videos";
 import { seedIdeas } from "./seed";
 
 const SERVABLE = ["projects/", "library/", "exports/"];
-const VIDEO_SERVABLE = /^\d{3}-[a-z0-9-]+\/((inbox|renders)\/[^/]+|record\/(takes\/)?[^/]+\.wav)$/;
+const VIDEO_SERVABLE = /^\d{3}-[a-z0-9-]+\/((inbox|renders|media)\/[^/]+|record\/(takes\/)?[^/]+\.wav|edit\/(stills\/[\w-]+|\.thumbs)\/[^/]+\.(png|jpg))$/;
 
 export function createApp(): Hono {
   const app = new Hono();
@@ -63,6 +64,7 @@ export function createApp(): Hono {
   app.route("/api", api);
   app.route("/api", recordings);
   app.route("/api", studio);
+  app.route("/api", edit);
   app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));
 
   if (existsSync(paths.studioDist)) {

@@ -31,6 +31,7 @@ import { execOrThrow } from "../lib/exec";
 import { StepError } from "../pipeline/errors";
 import { quickText, toSrt, transcribeWords, type TranscriptSegment } from "../tts/whisperAlign";
 import { cleanWav, cleanupEngine, type Level } from "./denoise";
+import { exportFacecam, finishCamera } from "./facecam";
 import { appendToSection, parseStatus, setStageState, updateStatus, videoDir } from "./videos";
 
 const bad = (message: string) => new StepError(message, false);
@@ -106,6 +107,26 @@ export function appendChunk(id: string, take: string, bytes: Buffer): void {
   appendFileSync(pcm, bytes.subarray(0, bytes.length - (bytes.length % 2)));
 }
 
+// Face cam arrives as pieces of one MediaRecorder file while the take records; appended in order they form the whole file.
+export function appendVideoChunk(id: string, take: string, bytes: Buffer): void {
+  if (!existsSync(takeFile(id, take, ".part.json"))) throw bad("That take isn't recording");
+  appendFileSync(takeFile(id, take, ".cam.raw"), bytes);
+}
+
+// Converts and syncs a take's face cam. A camera problem never costs the voice take: it's logged and the take stays voice-only.
+async function attachCamera(id: string, take: string): Promise<void> {
+  const raw = takeFile(id, take, ".cam.raw");
+  if (!existsSync(raw)) return;
+  try {
+    const info = await finishCamera(raw, takeFile(id, take, ".wav"), takeFile(id, take, ".cam.mp4"));
+    const file = takeFile(id, take, ".json");
+    if (info && existsSync(file)) writeTake(id, { ...readTake(file), video: info });
+    rmSync(raw, { force: true });
+  } catch (error) {
+    console.error(`face cam for ${take} couldn't be processed; the raw file is kept`, error);
+  }
+}
+
 function readTake(file: string): Take {
   return JSON.parse(readFileSync(file, "utf8")) as Take;
 }
@@ -144,6 +165,7 @@ export async function finishTake(id: string, take: string): Promise<RecordState>
   writeFileSync(takeFile(id, take, ".wav"), Buffer.concat([wavHeader(pcm.length, part.rate), pcm]));
   // If transcription fails, the .pcm and .part.json stay, so the take shows up as unfinished and can be tried again.
   await transcribeTake(id, take, part);
+  await attachCamera(id, take);
   rmSync(pcmFile, { force: true });
   rmSync(partFile, { force: true });
   return recordState(id);
@@ -206,6 +228,11 @@ async function transcribeTake(id: string, take: string, meta: { from: number; cr
     words,
     glitches: glitchSpans(findClicks(samples, rate, 32768), duration),
   };
+  const before = takeFile(id, take, ".json");
+  if (existsSync(before)) {
+    const video = readTake(before).video;
+    if (video) result.video = video;
+  }
   const range = keptRange(words);
   if (range) {
     for (const older of listTakes(id)) if (older.id !== take && older.createdAt < meta.createdAt) writeTake(id, { ...older, words: markRedone(older.words, range) });
@@ -323,6 +350,7 @@ export function recordState(id: string): RecordState {
       at: statSync(narration).mtime.toISOString(),
       duration: saved.duration,
       cleanup: saved.cleanup ?? "off",
+      facecam: existsSync(path.join(recordDir(id), "facecam.mp4")),
       // Any take saved or re-cut after the export, or a different noise setting, means the exported file no longer matches the edit.
       stale:
         (saved.cleanup ?? "off") !== cleanup ||
@@ -361,7 +389,7 @@ export function saveCuts(id: string, take: string, cuts: (CutReason | null)[]): 
 export function deleteTake(id: string, take: string): void {
   const trash = path.join(recordDir(id), "trash");
   mkdirSync(trash, { recursive: true });
-  for (const ext of [".json", ".wav", ".pcm", ".part.json"]) {
+  for (const ext of [".json", ".wav", ".pcm", ".part.json", ".cam.mp4", ".cam.raw"]) {
     const file = takeFile(id, take, ext);
     if (existsSync(file)) renameSync(file, path.join(trash, path.basename(file)));
   }
@@ -435,6 +463,17 @@ export async function exportNarration(id: string, finish: boolean): Promise<Reco
     ]);
   } finally {
     rmSync(filterFile, { force: true });
+  }
+
+  // Face cam: cut with exactly the voice's segments. Only when every take used has camera; a stale file never lingers.
+  const facecam = path.join(dir, "facecam.mp4");
+  rmSync(facecam, { force: true });
+  const withCam = segments.every((seg) => takes.get(seg.take)?.video && existsSync(takeFile(id, seg.take, ".cam.mp4")));
+  if (withCam) {
+    await exportFacecam(
+      segments.map((seg) => ({ cam: takeFile(id, seg.take, ".cam.mp4"), offset: takes.get(seg.take)!.video!.offset, start: seg.start, end: seg.end })),
+      facecam,
+    );
   }
 
   const placed = placeWords(segments, takes);

@@ -24,6 +24,10 @@ export const ALLOWED_TOOLS = [
   "Bash(python3 .claude/skills/yt-chapters/chapters.py:*)",
   "Bash(python3 .claude/skills/yt-edit/deadair.py:*)",
   "Bash(pnpm transcribe:*)",
+  // Edit stage (approved by the creator, 2026-11-17): context packs, the designer's check stills, and assembly.
+  "Bash(node scripts/beat-context.mjs:*)",
+  "Bash(node scripts/render-stills.mjs:*)",
+  "Bash(node scripts/assemble.mjs:*)",
 ];
 
 type Job = { id: string; videoId: string; kind: "next" | "message"; text?: string; queuedAt: string };
@@ -169,7 +173,8 @@ function start(job: Job): void {
   const rawLog = path.join(runsDir(job.videoId), `${job.id}.jsonl`);
   const child = spawn(env.CLAUDE_CLI_PATH, buildArgs(job, mode, lastSession(job.videoId)), {
     cwd: ROOT_DIR,
-    env: process.env,
+    // Decision: subagents must run in the foreground here. In a headless run, background subagents are killed the moment the showrunner writes its final answer, so it would "finish" with nothing built.
+    env: { ...process.env, CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: "1" },
     stdio: ["ignore", "pipe", "pipe"],
   });
   active = { job, child, summary };

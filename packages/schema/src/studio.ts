@@ -7,7 +7,7 @@ export type VideoMode = (typeof VIDEO_MODES)[number];
 export const VIDEO_AUDIO = ["voice", "music"] as const;
 export type VideoAudio = (typeof VIDEO_AUDIO)[number];
 
-export const INBOX_INTENTS = ["reference", "use as visual", "for a beat", "other"] as const;
+export const INBOX_INTENTS = ["part of the idea", "reference", "use as visual", "for a beat", "other"] as const;
 export type InboxIntent = (typeof INBOX_INTENTS)[number];
 
 export type StageRow = { name: string; state: string; output: string; gate: boolean };
@@ -79,3 +79,23 @@ export type StudioEvent =
   | { type: "studio"; videoId: string }
   | { type: "studio-feed"; videoId: string; runId: string; line: FeedLine }
   | { type: "runner"; status: RunnerStatus };
+
+// The motion and music libraries, shown on the website as references for planning.
+export type LibraryEntryInfo = { id: string; kind: string; title: string; useFor: string; api: string; seconds: number; origin?: string; preview: string; mid: string };
+export type LibraryThemeInfo = { slug: string; name: string; summary: string; feel: string[]; status: "draft" | "ready"; board?: string; entries: LibraryEntryInfo[] };
+export type MusicTrack = {
+  id: string;
+  title: string;
+  artist: string;
+  source: string;
+  url: string;
+  license: string;
+  attribution: string;
+  mood: string[];
+  bpm: number | null;
+  duration: number | null;
+  // candidate = found by research, not downloaded yet; ready = the file is in the library.
+  status: "candidate" | "ready";
+  file?: string;
+};
+export type LibraryCatalog = { themes: LibraryThemeInfo[]; music: MusicTrack[]; musicSources: boolean };

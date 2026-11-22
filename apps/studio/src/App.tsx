@@ -15,6 +15,8 @@ import { ProjectPage } from "./pages/ProjectPage";
 import { RecordPage } from "./pages/RecordPage";
 import { VideoPage } from "./pages/VideoPage";
 import { VoicePage } from "./pages/VoicePage";
+import { Library } from "./pages/Library";
+import { EditPage } from "./pages/EditPage";
 
 function Page({ route }: { route: Route }) {
   switch (route.page) {
@@ -22,10 +24,14 @@ function Page({ route }: { route: Route }) {
       return <VideoPage id={route.id} />;
     case "record":
       return <RecordPage id={route.id} />;
+    case "edit":
+      return <EditPage id={route.id} />;
     case "voice":
       return <VoicePage />;
     case "guide":
       return <Guide />;
+    case "library":
+      return <Library />;
     case "shorts":
       return <Home />;
     case "project":

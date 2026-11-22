@@ -41,7 +41,7 @@ Every video has a `status.md`. Update it after each stage and log every creative
 
 ## Budget rules (Claude Pro; the creator is a student)
 - The main session runs on Opus. **Never use Fable** unless the creator switches to it. If a task truly needs it, ask first: one Fable prompt can use about a quarter of the 5-hour limit.
-- Subagents run on Sonnet or Haiku, never Opus or Fable. Agent files use exact model IDs (`claude-sonnet-5-5`, `claude-haiku-5-5`), because the bare aliases resolve to older models in this Claude Code version.
+- Subagents run on Sonnet or Haiku, never Opus or Fable. One exception: motion-design work (writing animation code for the library or a video) runs on Opus, because animation quality is the product (the creator's decision, 2026-11-15). Agent files use exact model IDs (`claude-sonnet-5-5`, `claude-haiku-5-5`), because the bare aliases resolve to older models in this Claude Code version.
 - One stage per session is the ideal. State lives in the video folder, so a fresh session continues where the last one stopped.
 - Before anything heavy (a large research fan-out, many renders), say so and give a rough size.
 

@@ -291,7 +291,8 @@ export function listInbox(id: string): InboxItem[] {
   return items.map((item) => ({ ...item, url: `${VIDEO_FILES_PREFIX}/${id}/inbox/${encodeURIComponent(item.file)}` })).reverse();
 }
 
-export function createVideo(idea: string, mode: VideoMode, audio: VideoAudio = "voice"): string {
+// look / music: the creator's picks from the website Library (a theme name, a track), or empty to let the team choose.
+export function createVideo(idea: string, mode: VideoMode, audio: VideoAudio = "voice", prefs: { look?: string; music?: string } = {}): string {
   const templates = path.join(ROOT_DIR, ".claude", "skills", "studio", "templates");
   const numbers = listVideoIds().map((name) => Number(name.slice(0, 3)));
   const number = (numbers.length ? Math.max(...numbers) : 0) + 1;
@@ -306,5 +307,10 @@ export function createVideo(idea: string, mode: VideoMode, audio: VideoAudio = "
     const status = () => appendToSection(withAudio(text.replace(/^Mode:.*$/m, `Mode: ${mode}`), audio), "Creator decisions", `${today()} idea: the creator chose ${AUDIO_LABEL[audio]}`);
     writeFileSync(path.join(dir, name), name === "status.md" ? status() : text);
   }
+  const picks = [
+    prefs.look?.trim() ? `idea: the creator picked the look "${prefs.look.trim()}" from the motion library (packages/video/src/library); build the visuals in that theme` : "",
+    prefs.music?.trim() ? `idea: the creator picked the music "${prefs.music.trim()}" from the music library` : "",
+  ].filter(Boolean);
+  for (const pick of picks) writeStatus(id, appendToSection(readStatus(id), "Creator decisions", `${today()} ${pick}`));
   return id;
 }

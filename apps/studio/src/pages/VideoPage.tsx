@@ -38,7 +38,22 @@ function useVideoAction(id: string) {
     });
 }
 
-function Stepper({ video }: { video: VideoDetail }) {
+// Where clicking a stage takes you: its document below, or the page where that stage's work happens.
+const STAGE_DOC: Record<string, string> = { idea: "idea.md", research: "brief.md", plan: "plan.md", script: "script.md", "package + upload": "package.md" };
+type Opener = (stage: string) => void;
+
+function stageTarget(video: VideoDetail, stage: string): "doc" | "record" | "edit" | null {
+  const doc = STAGE_DOC[stage];
+  if (doc) return video.files.includes(doc) ? "doc" : null;
+  if (stage === "record") return video.audio === "music" || !video.files.includes("script.md") ? null : "record";
+  if (stage === "edit + graphics" || stage === "rough cut") {
+    const reached = video.stages.some((s) => s.name === "record" && /^(done|skipped)\b/.test(s.state));
+    return reached ? "edit" : null;
+  }
+  return null;
+}
+
+function Stepper({ video, onOpen }: { video: VideoDetail; onOpen: Opener }) {
   const list = useRef<HTMLOListElement>(null);
   // On a narrow screen the stepper scrolls sideways; keep the current stage in view.
   useEffect(() => {
@@ -67,8 +82,15 @@ function Stepper({ video }: { video: VideoDetail }) {
                   : current
                     ? "Next"
                     : "";
+        const target = stageTarget(video, stage.name);
         return (
-          <li key={stage.name} aria-current={current ? "step" : undefined} className={`relative min-w-[132px] flex-1 px-3 py-3 ${i > 0 ? "border-l border-line" : ""}`}>
+          <li
+            key={stage.name}
+            aria-current={current ? "step" : undefined}
+            onClick={target ? () => onOpen(stage.name) : undefined}
+            title={target === "doc" ? "Open its document" : target === "record" ? "Open the recorder" : target === "edit" ? "Open the editor" : undefined}
+            className={`relative min-w-[132px] flex-1 px-3 py-3 ${i > 0 ? "border-l border-line" : ""} ${target ? "cursor-pointer transition-colors hover:bg-surface-hi" : ""}`}
+          >
             {current ? <span className="absolute inset-x-0 -bottom-px h-px bg-accent" /> : null}
             <div className="flex items-center gap-2">
               <span className={`font-mono text-[11px] ${current ? "text-accent" : "text-dim"}`}>{String(i + 1).padStart(2, "0")}</span>
@@ -224,14 +246,38 @@ function Now({ video }: { video: VideoDetail }) {
           </>
         }
         action={
-          <Button tone="danger" size="sm" onClick={() => stop.mutate(undefined)} disabled={stop.isPending}>
-            <StopIcon size={12} /> Stop
-          </Button>
+          <div className="flex gap-2">
+            {/* Watching or recording while the team works is safe: the team only writes files, it never locks the pages. */}
+            {video.currentStage === "edit + graphics" || video.currentStage === "rough cut" ? (
+              <Button size="sm" onClick={() => navigate({ page: "edit", id: video.id })}>
+                Open editor
+              </Button>
+            ) : null}
+            <Button tone="danger" size="sm" onClick={() => stop.mutate(undefined)} disabled={stop.isPending}>
+              <StopIcon size={12} /> Stop
+            </Button>
+          </div>
         }
       />
     );
   } else if (video.questions) body = <Questions video={video} />;
-  else if (atGate && current) body = <Gate video={video} stage={current.name} />;
+  // The rough cut is a video, not a document: its review (player, notes, approve) lives on the Edit page, so the generic document gate would point at nothing.
+  else if (atGate && current?.name === "rough cut") {
+    body = (
+      <TurnCard
+        title={
+          <>
+            Your call: watch the rough cut <span className="hidden text-dim md:inline">· pin notes on moments, then approve it in the editor</span>
+          </>
+        }
+        action={
+          <Button tone="primary" onClick={() => navigate({ page: "edit", id: video.id })}>
+            <PlayIcon size={14} /> Watch the rough cut
+          </Button>
+        }
+      />
+    );
+  } else if (atGate && current) body = <Gate video={video} stage={current.name} />;
   else if (video.currentStage === "record") {
     body = (
       <TurnCard
@@ -244,6 +290,30 @@ function Now({ video }: { video: VideoDetail }) {
           <Button tone="primary" onClick={() => navigate({ page: "record", id: video.id })}>
             <MicIcon size={14} /> Open recorder
           </Button>
+        }
+      />
+    );
+  } else if (video.currentStage === "edit + graphics" || video.currentStage === "rough cut") {
+    body = (
+      <TurnCard
+        title={
+          <>
+            Edit: graphics, mix and the rough cut <span className="hidden text-dim md:inline">· watch it, fix beats, set the music, then approve</span>
+          </>
+        }
+        action={
+          <div className="flex gap-2">
+            <Button
+              onClick={() => run.mutate(undefined)}
+              disabled={run.isPending}
+              title="Before the storyboard is approved: the team plans the shots for the beats not built yet and renders the storyboard. After you approve it: they build those beats one by one and assemble a new cut."
+            >
+              <PlayIcon size={14} /> Run the team
+            </Button>
+            <Button tone="primary" onClick={() => navigate({ page: "edit", id: video.id })}>
+              Open editor
+            </Button>
+          </div>
         }
       />
     );
@@ -286,10 +356,16 @@ function Now({ video }: { video: VideoDetail }) {
   );
 }
 
-function Documents({ video }: { video: VideoDetail }) {
+function Documents({ video, request }: { video: VideoDetail; request: { file: string; n: number } | null }) {
   const client = useQueryClient();
   const available = DOCS.filter((doc) => video.files.includes(doc.file));
   const [tab, setTab] = useState(available[0]?.file ?? "status.md");
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!request) return;
+    setTab(request.file);
+    box.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [request]);
   const [editing, setEditing] = useState<string | null>(null);
   useEffect(() => {
     if (!available.some((doc) => doc.file === tab) && available[0]) setTab(available[0].file);
@@ -309,7 +385,7 @@ function Documents({ video }: { video: VideoDetail }) {
   });
   if (available.length === 0) return <Empty>The team's documents appear here as each stage finishes.</Empty>;
   return (
-    <section className="flex min-w-0 flex-col">
+    <section ref={box} className="flex min-w-0 scroll-mt-6 flex-col">
       <Tabs
         items={available.map((d) => ({ id: d.file, label: docLabel(video, d.file, d.label) }))}
         value={tab}
@@ -616,8 +692,15 @@ export function VideoPage({ id }: { id: string }) {
       void client.invalidateQueries({ queryKey: ["videos"] });
     },
   });
+  const [docRequest, setDocRequest] = useState<{ file: string; n: number } | null>(null);
   if (error) return <Empty>{error.message}</Empty>;
   if (!video) return <p className="text-sm text-dim">Loading…</p>;
+  const openStage = (stage: string) => {
+    const target = stageTarget(video, stage);
+    if (target === "record") navigate({ page: "record", id: video.id });
+    else if (target === "edit") navigate({ page: "edit", id: video.id });
+    else if (target === "doc") setDocRequest((r) => ({ file: STAGE_DOC[stage]!, n: (r?.n ?? 0) + 1 }));
+  };
   const state = cardState(video);
   const planApproved = video.stages.some((stage) => stage.name === "plan" && /^done\b/.test(stage.state));
 
@@ -659,10 +742,10 @@ export function VideoPage({ id }: { id: string }) {
           {audio.error ? <p className="max-w-xs text-right text-xs text-bad">{audio.error.message}</p> : null}
         </div>
       </header>
-      <Stepper video={video} />
+      <Stepper video={video} onOpen={openStage} />
       <Now video={video} />
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <Documents video={video} />
+        <Documents video={video} request={docRequest} />
         <SidePanel video={video} />
       </div>
       <a href={hrefOf({ page: "guide" })} className="inline-flex w-fit items-center gap-1.5 text-xs text-dim transition-colors hover:text-ink">

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { studio } from "../api";
 import { hrefOf, type Route } from "../hooks";
 import { useTheme } from "../theme";
-import { BoltIcon, GuideIcon, MicIcon, MoonIcon, SunIcon, VideosIcon } from "./icons";
+import { BoltIcon, GuideIcon, LibraryIcon, MicIcon, MoonIcon, SunIcon, VideosIcon } from "./icons";
 import { UsageMeter } from "./UsageMeter";
 
 type Item = { route: Route; label: string; icon: ReactNode; active: (route: Route) => boolean; badge?: boolean };
@@ -37,7 +37,8 @@ function ThemeToggle() {
 export function Sidebar({ route, compact }: { route: Route; compact: boolean }) {
   const { data: voice } = useQuery({ queryKey: ["voice"], queryFn: studio.voice, staleTime: 60_000 });
   const items: Item[] = [
-    { route: { page: "board" }, label: "Videos", icon: <VideosIcon />, active: (r) => r.page === "board" || r.page === "video" || r.page === "record" },
+    { route: { page: "board" }, label: "Videos", icon: <VideosIcon />, active: (r) => r.page === "board" || r.page === "video" || r.page === "record" || r.page === "edit" },
+    { route: { page: "library" }, label: "Library", icon: <LibraryIcon />, active: (r) => r.page === "library" },
     { route: { page: "voice" }, label: "Voice practice", icon: <MicIcon />, active: (r) => r.page === "voice", badge: voice?.due },
     { route: { page: "guide" }, label: "How it works", icon: <GuideIcon />, active: (r) => r.page === "guide" },
   ];

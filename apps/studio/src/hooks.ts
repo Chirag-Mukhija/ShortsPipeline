@@ -7,12 +7,16 @@ export type Route =
   | { page: "board" }
   | { page: "video"; id: string }
   | { page: "record"; id: string }
+  | { page: "edit"; id: string }
   | { page: "voice" }
   | { page: "guide" }
+  | { page: "library" }
   | { page: "shorts" }
   | { page: "project"; id: string };
 
 function parseHash(hash: string): Route {
+  const editRoute = hash.match(/^#\/v\/([\w-]+)\/edit/);
+  if (editRoute?.[1]) return { page: "edit", id: editRoute[1] };
   const record = hash.match(/^#\/v\/([\w-]+)\/record/);
   if (record?.[1]) return { page: "record", id: record[1] };
   const video = hash.match(/^#\/v\/([\w-]+)/);
@@ -22,6 +26,7 @@ function parseHash(hash: string): Route {
   if (hash.startsWith("#/shorts")) return { page: "shorts" };
   if (hash.startsWith("#/voice")) return { page: "voice" };
   if (hash.startsWith("#/guide")) return { page: "guide" };
+  if (hash.startsWith("#/library")) return { page: "library" };
   return { page: "board" };
 }
 
@@ -41,6 +46,8 @@ export function hrefOf(route: Route): string {
       return `#/v/${route.id}`;
     case "record":
       return `#/v/${route.id}/record`;
+    case "edit":
+      return `#/v/${route.id}/edit`;
     case "project":
       return `#/p/${route.id}`;
     case "board":
@@ -82,6 +89,7 @@ export function useLiveUpdates(): void {
       later(`v:${event.videoId}`, () => {
         void client.invalidateQueries({ queryKey: ["videos"] });
         void client.invalidateQueries({ queryKey: ["video", event.videoId] });
+        void client.invalidateQueries({ queryKey: ["edit", event.videoId] });
       });
     };
     // Decision: feed lines are appended straight into the cached run so the live feed scrolls without refetching the video.

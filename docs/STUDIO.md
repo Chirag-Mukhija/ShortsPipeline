@@ -22,6 +22,9 @@ idea → research → plan (gate) → script (gate) → record → [edit + graph
   - **Ask me at each gate** or **Fully autonomous**
   - **Voice-over** or **Music only**
 
+  - **Attach** sketches, screenshots, photos, clips and voice notes (button, drag-and-drop or paste). They go into the video's inbox as "part of the idea"; clips get a frame sheet and a transcript automatically, so the agents can see and hear them.
+  - Optional **Look** and **Music** picks from the Library (or let the team choose).
+
   "Needs you" shows what's waiting on you.
 - **Video page:**
   - **Steps and actions:** the stage stepper, and one "Now" bar for whatever needs you (answer, approve, give notes, record, run next).
@@ -60,6 +63,13 @@ idea → research → plan (gate) → script (gate) → record → [edit + graph
 - Record is skipped.
 - Details: `.claude/skills/studio/music-only.md`.
 
+**Motion and music library** (new, 2026-11-15; the website's **Library** page)
+- `packages/video/src/library/`: `core` (timing, camera, transitions, beat clock) plus 33 themes (~530 animations), each with a demo and preview stills. The full list is on the website's Library page. Renders use the GPU via `packages/video/remotion.config.ts`.
+- Rules: `library/README.md`; builder brief: `library/THEME-BRIEF.md`. Previews: `node scripts/library-previews.mjs [theme]` (also refreshes the website catalog).
+- Research behind it: 66 theme boards in `data/references/themes/` (index: `INDEX.md`), technique notes in `data/references/core-motion/`.
+- Music: `data/music/SOURCES.md` (source comparison; primary Incompetech, CC BY 4.0) and 20 verified candidate tracks in `data/music/candidates.json`. Nothing downloaded yet.
+- Video 001 Beats 1–2 one-shot (`packages/video/src/oneshot/`) is the quality benchmark for the edit stage.
+
 **Tools:**
 - `pnpm transcribe <file>`: local Whisper, writes `.txt` + `.srt`
 - `pnpm setup:denoise`: installs DeepFilterNet, the better noise cleanup
@@ -74,9 +84,14 @@ idea → research → plan (gate) → script (gate) → record → [edit + graph
    - re-record Beats 6–8
    - compare noise cleanup Off and Gentle in Edit
    - export
-4. **Try one music-only video** start to finish through the cue sheet, to test the new playbook.
+4. **One parked theme** (stopped at the usage limit, not registered): `bauhaus-geometric`. Finish it later or delete the folder. 81 research boards exist; about 50 are unbuilt (build when a video needs the look).
+5. **Download the music you like** from the candidates into `data/library/music/` and list them in `tracks.json` (they then show as "in library").
+6. **Try one music-only video** start to finish through the cue sheet, to test the new playbook.
 
 ## What's next (in order, one step at a time)
+
+The edit + graphics stage plan is in **`docs/EDIT-STAGE-PLAN.md`** (build order, cost, decisions). Built so far (2026-11-16): the engine (`node scripts/assemble.mjs <videoId>`), the designer's tools (`scripts/beat-context.mjs`, `scripts/render-stills.mjs`), the stage playbook (`stages/edit.md`) with the **motion-designer** agent (Opus), and the website's **Edit page** (timeline, mixer, beats with takes and redo, footage, rough-cut notes, renders, approve) plus adding music files on the Library page. Then the direction layer: `library/DIRECTION.md`, a new core camera, surfaces, transitions and text, and a storyboard animatic with a Shots editor and Approve storyboard. One step for the creator: allow the runner to run the three edit scripts (see the plan).
+
 1. **Edit + graphics (stage 6).**
    - The video is timed to your narration's word timings, or to the music on a music-only video.
    - Motion graphics for each beat come from the `[ON SCREEN]` cues and your sketches.

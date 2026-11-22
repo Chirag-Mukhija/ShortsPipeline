@@ -7,7 +7,8 @@ export type RecordScript = { hash: string; beats: { n: number; name: string }[];
 export type CutReason = "retake" | "filler" | "redone" | "outside" | "you";
 export type TakeWord = { text: string; norm: string; start: number; end: number; idx: number | null; cut: boolean; reason?: CutReason };
 // glitches: stretches (in seconds) where the mic crackled or dropped out, found by findClicks.
-export type Take = { id: string; createdAt: string; from: number; duration: number; gainDb: number; scriptHash: string; words: TakeWord[]; glitches?: [number, number][] };
+// `video`: the take has face cam. offset = camera time minus voice time (seconds); synced = matched by audio, not assumed.
+export type Take = { id: string; createdAt: string; from: number; duration: number; gainDb: number; scriptHash: string; words: TakeWord[]; glitches?: [number, number][]; video?: { offset: number; width: number; height: number; synced: boolean } };
 // Background-noise cleanup for playback and export; transcripts always come from the untouched recording.
 export type Cleanup = "off" | "gentle" | "strong";
 export type CleanupEngine = "deepfilternet" | "ffmpeg";
@@ -17,7 +18,7 @@ export type RecordState = {
   script: RecordScript;
   takes: Take[];
   unfinished: UnfinishedTake[];
-  exported: { at: string; duration: number; stale: boolean; cleanup: Cleanup } | null;
+  exported: { at: string; duration: number; stale: boolean; cleanup: Cleanup; facecam: boolean } | null;
   cleanup: CleanupState;
   stageState: string;
 };

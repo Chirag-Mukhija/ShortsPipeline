@@ -8,7 +8,7 @@ import { INBOX_INTENTS, VIDEO_AUDIO, VIDEO_MODES, type VideoDetail } from "@clip
 import { StepError } from "../pipeline/errors";
 import { emit } from "../pipeline/events";
 import { enqueue, isRunning, listRuns, refreshUsage, resumeNow, runnerStatus, stop } from "../studio/runner";
-import { appendChunk, deleteTake, exportNarration, finishTake, listen, recordState, retranscribe, saveCuts, setCleanup, startTake } from "../studio/record";
+import { appendChunk, appendVideoChunk, deleteTake, exportNarration, finishTake, listen, recordState, retranscribe, saveCuts, setCleanup, startTake } from "../studio/record";
 import {
   CREATOR_STAGES,
   addInboxItem,
@@ -30,6 +30,8 @@ import {
   writeArtifact,
 } from "../studio/videos";
 import { transcribeRecording } from "../tts/whisperAlign";
+import { readLibrary } from "../studio/library";
+import { deriveInboxMedia } from "../studio/inboxMedia";
 import { saveSample, voiceStatus } from "../studio/voice";
 
 export const studio = new Hono();
@@ -71,8 +73,18 @@ studio.get("/studio/videos", (c) =>
 );
 
 studio.post("/studio/videos", async (c) => {
-  const input = await body(c, z.object({ idea: z.string().trim().min(3, "Describe the idea in a few words"), mode: z.enum(VIDEO_MODES).default("gated"), audio: z.enum(VIDEO_AUDIO).default("voice"), start: z.boolean().default(true) }));
-  const id = createVideo(input.idea, input.mode, input.audio);
+  const input = await body(
+    c,
+    z.object({
+      idea: z.string().trim().min(3, "Describe the idea in a few words"),
+      mode: z.enum(VIDEO_MODES).default("gated"),
+      audio: z.enum(VIDEO_AUDIO).default("voice"),
+      look: z.string().trim().max(120).default(""),
+      music: z.string().trim().max(200).default(""),
+      start: z.boolean().default(true),
+    }),
+  );
+  const id = createVideo(input.idea, input.mode, input.audio, { look: input.look, music: input.music });
   if (input.start) enqueue(id, "next");
   return c.json(detail(id), 201);
 });
@@ -145,7 +157,8 @@ studio.post("/studio/videos/:id/inbox", async (c) => {
   const file = form.file;
   if (!(file instanceof File)) throw new StepError("Attach a file", false);
   const intent = String(form.intent ?? "reference");
-  addInboxItem(id, file.name, Buffer.from(await file.arrayBuffer()), String(form.note ?? ""), (INBOX_INTENTS as readonly string[]).includes(intent) ? intent : "other");
+  const saved = addInboxItem(id, file.name, Buffer.from(await file.arrayBuffer()), String(form.note ?? ""), (INBOX_INTENTS as readonly string[]).includes(intent) ? intent : "other");
+  void deriveInboxMedia(path.join(videoDir(id), "inbox"), saved).catch((error: Error) => console.warn(`inbox media for ${saved}: ${error.message}`));
   return c.json(detail(id));
 });
 
@@ -163,6 +176,8 @@ studio.post("/studio/transcribe", async (c) => {
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+studio.get("/studio/library", (c) => c.json(readLibrary()));
 
 studio.get("/studio/runner", (c) => c.json(runnerStatus()));
 
@@ -195,6 +210,11 @@ studio.post("/studio/videos/:id/record/takes", async (c) => {
 
 studio.post("/studio/videos/:id/record/takes/:take/chunk", async (c) => {
   appendChunk(c.req.param("id"), c.req.param("take"), await raw(c));
+  return c.json({ ok: true });
+});
+
+studio.post("/studio/videos/:id/record/takes/:take/video", async (c) => {
+  appendVideoChunk(c.req.param("id"), c.req.param("take"), await raw(c));
   return c.json({ ok: true });
 });
 

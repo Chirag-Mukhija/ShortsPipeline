@@ -12,9 +12,9 @@ The showrunner updates this after every stage. Downstream agents read the decisi
 | research | done | brief.md, research/ |
 | plan | done | plan.md, package.md (**creator gate**) |
 | script | done | script.md, factcheck.md (**creator gate**) |
-| record | not started | record/narration.wav (you record it on the Record page) |
-| edit + graphics | not built yet | |
-| rough cut | not built yet | (**creator gate**) |
+| record | done | record/narration.wav (you record it on the Record page) |
+| edit + graphics | done | edit/edit.json, edit/scenes/, renders/preview.mp4 (the Edit page) |
+| rough cut | waiting for creator | renders/preview.mp4 reviewed on the Edit page (**creator gate**) |
 | package + upload | not built yet | (**creator gate**) |
 
 ## Creator decisions
@@ -32,6 +32,11 @@ Newest last. Format: `- YYYY-MM-DD <stage>: <decision, in the creator's words wh
 - 2026-11-14 script: Beat 2 has an optional line: "Looking back, I did feel some of it carried over between the topics." It came from the researcher's guess, not from you. Is it true for you? → "Keep it"
 - 2026-11-14 script: Beat 2, written from your answer: "I try to finish something substantial, just to get that feeling of relief after I switch. But mostly what I finish is made by coding agents like Claude, so there's no manual work from me there." Does that sound like you, and is "no manual work from me" exactly right? → "we can make it something like i was running from hardwork in that thing because i switched over and going back to it was hard (something like this)"
 - 2026-11-14 script: APPROVED by the creator
+- 2026-11-15 record: the creator finished recording (7:58, 10 takes, 5 script words left unrecorded on purpose). What was actually said is in record/transcript.md and record/narration.json; it wins over script.md wherever they differ.
+- 2026-11-15 edit (one-shot test): the creator watched renders/oneshot-beats-1-2.mp4 (Beats 1–2, made in one Opus session from the plan, sketch, cues and word timings) and scored it top on all four: shows what they say, lands on their words ("99.99%"), designed not templated, readable. "this is exactly the theme we decided". The hand-drawn paper look may become the channel's face later, but not yet: try other themes first.
+- 2026-11-15 edit: the animation library grows per video and is organised by theme; a new theme starts a new category with fresh code. Only truly theme-free pieces (timing, camera, blur/fade transitions) are shared. Later the website shows the animation and music libraries for reference while planning.
+- 2026-11-17 edit (beat-01 redo): "the overall camera movement is very less which makes the video harder to watch for a person who has short attention span , so from the start of the video if we can have fast paced camera movements i would like to look at that ." Applied as: fast, frequent, word-motivated camera moves from frame 0, overriding DIRECTION.md's "fast moves in at most a third of shots" limit for this beat. The old version is kept as take v1.
+- 2026-11-17 edit: storyboard APPROVED by the creator (89 shots)
 
 ## Notes for the next stage
 - idea: the "What we know" section of idea.md is filled in from the creator's words. The website shows four questions (viewer, takeaway, length, must-in/must-out). Once they're answered, record the answers in idea.md, mark idea as done, and go straight into research.
@@ -50,4 +55,25 @@ Newest last. Format: `- YYYY-MM-DD <stage>: <decision, in the creator's words wh
 - script fact-check: 38 claims, 11 FLAGs, all fixed by the showrunner (see factcheck.md "Resolutions"). The biggest change: the Stack Overflow 70% vs 60% YouTube line was cut, because the figure is YouTube *for community*, not for learning. sources.md [3] and [5] are annotated.
 - script gate: questions.json asks for the chain order (sketch vs story), the optional "carried over" line (keep or cut) and the Beat 2 agents wording. Apply the answers to script.md. Once the creator approves, the next stage is record, which is not built yet.
 - script (2026-11-14, answers applied): (1) the chain stays in story order; the sketch-order note was removed. (2) The "carried over" line is now a normal spoken line at the end of Beat 2. (3) The Beat 2 admission was rewritten from both of the creator's answers: "But mostly, I let coding agents like Claude finish it. And honestly, I think I was running from the hard work. I'd already switched, and going back to do it myself was hard." Beat 1's "an AI agent wrote" line and Beat 4's "made by agents" line stay as they were, because they still match. No new factual claims, so no re-fact-check was needed. No `[CONFIRM WITH CREATOR]` markers are left. Waiting for approval only, so there's no questions.json.
+- edit, storyboard (2026-11-17): the theme stays **hand-drawn**, from the creator's plan-gate look answer and their "this is exactly the theme we decided" on Beats 1–2, so there was no theme question. Written so far:
+  - `edit/style.md` (style brief)
+  - 89 shots for Beats 3–8 in `edit.json`, with `storyboard: "draft"`
+  - two footage slots: fs-01, the creator's DSA practice (Beat 5), and fs-02, two Claude Code recordings, "do it" vs "explain why, then I'll write it" (Beat 7)
+  - `renders/animatic.mp4`
+
+  Beats 1–2 are already built and ready, so they have no planned shots and show "no shots planned yet" in the animatic.
+- edit, storyboard choices to check at the gate:
+  - (a) The script's A-ROLL cues are drawn as graphics, because only voice was recorded. That's how Beats 1–2 were built.
+  - (b) The Beat 7 parking note is drawn, not footage. The script allowed either.
+  - (c) The creator's beat-01 fast-camera note was applied energetically everywhere: a camera change on about every sentence, 2–6 s shots. Whips still stay within a third of the shots outside Beat 1. If the creator wants Beat 1's pace for the whole video, that's a whole-video note.
+  - (d) On-screen text uses the script's spelling where Whisper misheard: "Lazear" (heard "laser"), "generalists" ("journalists"), "88 studies" ("students"), "Anthropic" ("Entropic").
+  - (e) Beat 4's spoken ending "So I'm contradicting myself" isn't in the script. It's carried on the "made by agents" shot.
+- edit, next: when the creator presses Approve storyboard, build Beats 3–8 one motion-designer run each (stage step 2). Re-run `beat-context.mjs` first, so the packs carry the approved shots. The packs written today have none.
+- edit, build (2026-11-18): Beats 3–8 are being built after the storyboard approval, one motion-designer run per beat with at most two at a time. Context packs are re-run before each dispatch, so they carry the approved shots. Beats 3 and 4 were dispatched first.
+- edit, build (2026-11-20): Beats 1–6 are `ready`, and each has a contact sheet. Beats 7 and 8 were dispatched as the last pair, with fresh context packs.
+- edit, done (2026-11-20): Beats 7 and 8 are built, their stills checked by the showrunner (no red flags), and all eight beats are `ready`. renders/preview.mp4 is assembled (7:58, music "Wholesome", Kevin MacLeod). Rough cut is waiting for the creator on the Edit page. To raise at the gate:
+  - **fs-02 is the wrong footage.** media/fs-02.mov is one long autonomous Claude session, not the two takes the slot asks for ("do it" vs "explain why, then I'll write it"). Its sidebar also shows the creator's name and project list. Beat 7 shows labelled placeholders for both halves (`USE_FS02 = false` in scenes/beat-07.tsx). Once the right takes are uploaded, set it to `true` and adjust `FS_SPLIT` (assumed 5.5 s) to where the second take starts.
+  - Beat 7 yellow flags: about 7 pushes a minute (under the limit of 8). The parked-note lines (~37 px) and the final "back to the main thing" (~45 px) are small. The pencil briefly covers "studied on students". The calendar shows "no AI" once, as a legend, and the parking note says "when:", both to stay within 8 words.
+  - Beat 8 yellow flags: some short holds ("Nothing is guaranteed." ~1.3 s, "tool name" ~0.7 s before the scribble, "Where are you on yours?" ~1.7 s before the end). The tags clip briefly at the frame edge mid-push (~469 s). The ending is quiet after 476.6 s. The script's A-roll on the last line is drawn as graphics, like everywhere else (storyboard choice (a)). Transcript slips fixed on screen: "air" became "AI", "should be I" became "should I be".
+  - The Beat 7 → 8 seam: the two beats were built in parallel. Beat 7 ends pulled back on the closing chain, and Beat 8 opens on a fresh page with a quote mark, so the planned hand-off (the main link shrinking into the closing chain) is a plain beat change. If it feels abrupt, it's a one-beat redo.
 - 2026-11-12 inbox: the creator added inbox/20261112T064002-screenshot-2026-11-12-at-12-07-49-pm.png (for a beat): "Beat 1: Want: as specified the chaining is fine , but the text text should be popping and main highlight at the end, either the chain should go up or blur out and the text should have popping motion , as i speak From the sketch: only the strucuture what is mentioned"

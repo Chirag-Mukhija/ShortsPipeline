@@ -1,9 +1,9 @@
-// Studio home: start a video from a typed or spoken idea, see what needs you now, and every video as a row with its progress through the stages.
+// Studio home: start a video from a typed or spoken idea with attachments and optional library picks, see what needs you now, and every video with its progress.
 import { VIDEO_MODES, type VideoAudio, type VideoMode, type VideoSummary } from "@clipforge/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent } from "react";
 import { studio } from "../api";
-import { ArrowRightIcon, MicIcon, StopIcon } from "../components/icons";
+import { ArrowRightIcon, CloseIcon, MicIcon, PaperclipIcon, StopIcon } from "../components/icons";
 import { Button, PageHeader, Segmented } from "../components/ui";
 import { hrefOf, navigate } from "../hooks";
 
@@ -101,39 +101,110 @@ function VoiceIdea({ onText }: { onText: (text: string) => void }) {
   );
 }
 
+const kb = (bytes: number) => (bytes > 1e6 ? `${(bytes / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1e3))} KB`);
+
+// What the creator can attach to an idea: sketches, screenshots, photos, clips, voice notes and notes.
+const ATTACH_ACCEPT = "image/*,video/*,audio/*,.pdf,.md,.txt";
+
 function NewVideo() {
   const client = useQueryClient();
   const [idea, setIdea] = useState("");
   const [mode, setMode] = useState<VideoMode>("gated");
   const [audio, setAudio] = useState<VideoAudio>("voice");
+  const [files, setFiles] = useState<File[]>([]);
+  const [look, setLook] = useState("");
+  const [music, setMusic] = useState("");
+  const [dragging, setDragging] = useState(false);
+  const picker = useRef<HTMLInputElement>(null);
+  const { data: library } = useQuery({ queryKey: ["library"], queryFn: studio.library, staleTime: 60_000 });
+  const [step, setStep] = useState("");
   const create = useMutation({
-    mutationFn: () => studio.create(idea.trim(), mode, audio),
+    // With attachments the first run waits until every file is in the inbox, so the idea stage sees them all.
+    mutationFn: async () => {
+      setStep("Starting…");
+      const video = await studio.create(idea.trim(), mode, audio, files.length === 0, { look, music });
+      for (const [i, file] of files.entries()) {
+        setStep(`Uploading ${i + 1}/${files.length}…`);
+        await studio.addToInbox(video.id, file, "", "part of the idea");
+      }
+      if (files.length) await studio.run(video.id);
+      return video;
+    },
     onSuccess: (video) => {
       setIdea("");
+      setFiles([]);
       void client.invalidateQueries({ queryKey: ["videos"] });
       navigate({ page: "video", id: video.id });
     },
+    onSettled: () => setStep(""),
   });
   const ready = idea.trim().length >= 3;
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (ready) create.mutate();
   };
+  const add = (list: FileList | File[] | null) => {
+    const picked = Array.from(list ?? []);
+    if (picked.length) setFiles((current) => [...current, ...picked]);
+  };
+  const onDrop = (event: DragEvent) => {
+    event.preventDefault();
+    setDragging(false);
+    add(event.dataTransfer.files);
+  };
+  const onPaste = (event: ClipboardEvent) => {
+    if (event.clipboardData.files.length) {
+      event.preventDefault();
+      add(event.clipboardData.files);
+    }
+  };
+  const themes = (library?.themes ?? []).filter((t) => t.slug !== "core");
   return (
-    <form onSubmit={submit} className="rounded-xl border border-line bg-panel transition-colors focus-within:border-line-hi">
+    <form
+      onSubmit={submit}
+      onDragOver={(event) => {
+        event.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={onDrop}
+      className={`rounded-xl border bg-panel transition-colors focus-within:border-line-hi ${dragging ? "border-accent" : "border-line"}`}
+    >
       <textarea
         value={idea}
         onChange={(event) => setIdea(event.target.value)}
+        onPaste={onPaste}
         onKeyDown={(event) => {
           if (event.key === "Enter" && (event.metaKey || event.ctrlKey) && ready) create.mutate();
         }}
         rows={3}
-        placeholder="What's the next video? Say it however it's in your head, with your own story in it."
+        placeholder="What's the next video? Say it however it's in your head, with your own story in it. Drop sketches, screenshots, clips or voice notes here too."
         className="block w-full resize-none bg-transparent px-5 pb-2 pt-4 text-[15px] leading-relaxed text-ink outline-none placeholder:text-dim"
       />
+      {files.length ? (
+        <div className="flex flex-wrap gap-2 px-4 pb-3">
+          {files.map((file, i) => (
+            <Attachment key={`${file.name}-${i}`} file={file} onRemove={() => setFiles((current) => current.filter((_, j) => j !== i))} />
+          ))}
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-center justify-between gap-3 px-3 pb-3">
         <div className="flex flex-wrap items-center gap-2">
           <VoiceIdea onText={(text) => setIdea((current) => (current ? `${current} ${text}` : text))} />
+          <button type="button" onClick={() => picker.current?.click()} title="Attach sketches, photos, clips, voice notes" className="flex h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-sm text-muted transition-colors hover:border-line-hi hover:text-ink">
+            <PaperclipIcon size={15} /> Attach
+          </button>
+          <input
+            ref={picker}
+            type="file"
+            multiple
+            accept={ATTACH_ACCEPT}
+            className="hidden"
+            onChange={(event) => {
+              add(event.target.files);
+              event.target.value = "";
+            }}
+          />
           <Segmented label="Voice-over or music only" items={AUDIO_CHOICES} value={audio} onChange={setAudio} />
         </div>
         <div className="flex w-full items-center gap-2 sm:w-auto">
@@ -145,10 +216,32 @@ function NewVideo() {
             ))}
           </select>
           <Button tone="primary" type="submit" disabled={create.isPending || !ready}>
-            {create.isPending ? "Starting…" : "Start the team"}
+            {create.isPending ? step || "Starting…" : "Start the team"}
             <ArrowRightIcon size={14} />
           </Button>
         </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-2.5 text-xs text-muted">
+        <span className="eyebrow !text-[10px]">From the library</span>
+        <select value={look} onChange={(event) => setLook(event.target.value)} className="field !h-8 !w-auto !py-0 text-xs" title="A visual theme from the Library page">
+          <option value="">Look: let the team choose</option>
+          {themes.map((t) => (
+            <option key={t.slug} value={t.name}>
+              Look: {t.name}
+            </option>
+          ))}
+        </select>
+        <select value={music} onChange={(event) => setMusic(event.target.value)} className="field !h-8 !w-auto max-w-[260px] !py-0 text-xs" title="A track from the Library page">
+          <option value="">Music: let the team choose</option>
+          {(library?.music ?? []).map((t) => (
+            <option key={t.id} value={`${t.title} by ${t.artist} (${t.license}, ${t.url})`}>
+              Music: {t.title} · {t.mood.slice(0, 2).join(", ")}
+            </option>
+          ))}
+        </select>
+        <a href={hrefOf({ page: "library" })} className="ml-auto text-dim hover:text-ink">
+          Browse the library →
+        </a>
       </div>
       {audio === "music" ? (
         <p className="px-5 pb-3 text-xs leading-relaxed text-muted">
@@ -157,6 +250,24 @@ function NewVideo() {
       ) : null}
       {create.error ? <p className="px-5 pb-3 text-sm text-bad">{create.error.message}</p> : null}
     </form>
+  );
+}
+
+// A chip for an attached file; images show a thumbnail so the creator sees what they're sending.
+function Attachment({ file, onRemove }: { file: File; onRemove: () => void }) {
+  const [url] = useState(() => (file.type.startsWith("image/") ? URL.createObjectURL(file) : ""));
+  const kind = file.type.split("/")[0] || "file";
+  return (
+    <span className="flex max-w-[260px] items-center gap-2 rounded-lg border border-line bg-surface py-1 pl-1 pr-2 text-xs">
+      {url ? <img src={url} alt="" className="size-8 rounded object-cover" /> : <span className="grid size-8 place-items-center rounded bg-surface-hi text-[10px] uppercase text-dim">{kind.slice(0, 5)}</span>}
+      <span className="min-w-0">
+        <span className="block truncate text-ink">{file.name}</span>
+        <span className="text-dim">{kb(file.size)}</span>
+      </span>
+      <button type="button" onClick={onRemove} aria-label={`Remove ${file.name}`} className="ml-1 text-dim hover:text-ink">
+        <CloseIcon size={13} />
+      </button>
+    </span>
   );
 }
 

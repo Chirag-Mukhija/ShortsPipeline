@@ -85,3 +85,25 @@ export const MoonIcon = (p: IconProps) => (
     <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" />
   </Icon>
 );
+export const LibraryIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="3" y="4" width="5" height="16" rx="1.2" />
+    <rect x="10" y="4" width="5" height="16" rx="1.2" />
+    <path d="m17.5 5.2 3.3.9-3.9 14.6-3.3-.9" />
+  </Icon>
+);
+export const PaperclipIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m20 11.5-8.2 8.2a5 5 0 0 1-7.1-7.1l8.6-8.6a3.4 3.4 0 0 1 4.8 4.8l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.7-7.7" />
+  </Icon>
+);
+export const CloseIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M6 6l12 12M18 6 6 18" />
+  </Icon>
+);
+export const ClipIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m20 11.5-8.1 8.1a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" />
+  </Icon>
+);

@@ -1,0 +1,1000 @@
+{
+  "fps": 30,
+  "width": 1920,
+  "height": 1080,
+  "duration": 478.14,
+  "narration": "record/narration.wav",
+  "theme": "hand-drawn",
+  "beats": [
+    {
+      "id": "beat-01",
+      "scene": "scenes/beat-01.tsx",
+      "start": 0,
+      "end": 39.2,
+      "label": "The hook",
+      "status": "ready"
+    },
+    {
+      "id": "beat-02",
+      "scene": "scenes/beat-02.tsx",
+      "start": 39.2,
+      "end": 118.11,
+      "label": "The chain, honestly",
+      "status": "ready"
+    },
+    {
+      "id": "beat-03",
+      "scene": "scenes/beat-03.tsx",
+      "start": 118.11,
+      "end": 175.31,
+      "label": "Is switching actually bad?",
+      "status": "ready"
+    },
+    {
+      "id": "beat-04",
+      "scene": "scenes/beat-04.tsx",
+      "start": 175.31,
+      "end": 251.45,
+      "label": "The real cost isn't switching. It's not learning",
+      "status": "ready"
+    },
+    {
+      "id": "beat-05",
+      "scene": "scenes/beat-05.tsx",
+      "start": 251.45,
+      "end": 293.49,
+      "label": "The one thing I never dropped: DSA",
+      "status": "ready"
+    },
+    {
+      "id": "beat-06",
+      "scene": "scenes/beat-06.tsx",
+      "start": 293.49,
+      "end": 371.33,
+      "label": "Learn skills, not tool names",
+      "status": "ready"
+    },
+    {
+      "id": "beat-07",
+      "scene": "scenes/beat-07.tsx",
+      "start": 371.33,
+      "end": 444.19,
+      "label": "How to learn with AI so you actually learn",
+      "status": "ready"
+    },
+    {
+      "id": "beat-08",
+      "scene": "scenes/beat-08.tsx",
+      "start": 444.19,
+      "end": 478.14,
+      "label": "Close",
+      "status": "ready"
+    }
+  ],
+  "music": {
+    "trackId": "incompetech-wholesome",
+    "title": "Wholesome · Kevin MacLeod",
+    "credit": "Wholesome Kevin MacLeod (incompetech.com)\r\nLicensed under Creative Commons: By Attribution 4.0\r\nhttps://creativecommons.org/licenses/by/4.0/"
+  },
+  "mix": {
+    "voiceDb": -17,
+    "musicDb": 0,
+    "duckDb": 8,
+    "musicOn": true,
+    "musicStart": 0,
+    "fadeIn": 2,
+    "fadeOut": 3
+  },
+  "footage": [
+    {
+      "id": "fs-01",
+      "beat": "beat-05",
+      "need": "A screen recording of your own DSA practice: your notes, a solved problem or your streak page. Scroll slowly and keep personal info off screen.",
+      "seconds": 5,
+      "file": "media/fs-01.mov"
+    },
+    {
+      "id": "fs-02",
+      "beat": "beat-07",
+      "need": "Two short Claude Code screen recordings of the same small task: one where you type \"do it\", one where you type \"explain why, then I'll write it\". Just the prompt and the start of the answer, about 5 s each.",
+      "seconds": 11,
+      "file": "media/fs-02.mov"
+    }
+  ],
+  "storyboard": "approved",
+  "shots": [
+    {
+      "id": "b03-s01",
+      "beat": "beat-03",
+      "at": 118.11,
+      "subject": "the balance scale",
+      "action": "wobbles as a 'no study found' stamp slams onto its base",
+      "size": "mcu",
+      "move": "push",
+      "text": "No study found",
+      "transitionOut": "overlap"
+    },
+    {
+      "id": "b03-s02",
+      "beat": "beat-03",
+      "at": 121.3,
+      "subject": "the left pan",
+      "action": "sinks under one tall stack of blocks",
+      "size": "cu",
+      "move": "glide",
+      "text": "One stack, a year"
+    },
+    {
+      "id": "b03-s03",
+      "beat": "beat-03",
+      "at": 124.4,
+      "subject": "the right pan",
+      "action": "fills with small sampled cards while the scale never settles",
+      "size": "wide",
+      "move": "pull",
+      "text": "Keep sampling",
+      "transitionOut": "whip"
+    },
+    {
+      "id": "b03-s04",
+      "beat": "beat-03",
+      "at": 127.95,
+      "subject": "a research paper",
+      "action": "slides in from the margin, dated 2002",
+      "size": "mcu",
+      "move": "whip",
+      "text": "2002"
+    },
+    {
+      "id": "b03-s05",
+      "beat": "beat-03",
+      "at": 131.1,
+      "subject": "the paper's cover",
+      "action": "writes its author and data source in the clean sans",
+      "size": "cu",
+      "move": "push",
+      "text": "Lazear, Stanford alumni data"
+    },
+    {
+      "id": "b03-s06",
+      "beat": "beat-03",
+      "at": 135.45,
+      "subject": "a zigzag career path",
+      "action": "draws through many role boxes",
+      "size": "mcu",
+      "move": "glide",
+      "text": "Many different roles"
+    },
+    {
+      "id": "b03-s07",
+      "beat": "beat-03",
+      "at": 138.3,
+      "subject": "the path's end",
+      "action": "lands on a founder at a desk",
+      "size": "cu",
+      "move": "push",
+      "text": "Strongest predictor: entrepreneur"
+    },
+    {
+      "id": "b03-s08",
+      "beat": "beat-03",
+      "at": 143.4,
+      "subject": "the employee beside the founder",
+      "action": "gets crossed out with a quick scribble",
+      "size": "mcu",
+      "move": "pull",
+      "text": "Founders, not employees"
+    },
+    {
+      "id": "b03-s09",
+      "beat": "beat-03",
+      "at": 146.15,
+      "subject": "a 'generalists win' banner",
+      "action": "gets struck through",
+      "size": "cu",
+      "move": "cut",
+      "text": "Generalists win"
+    },
+    {
+      "id": "b03-s10",
+      "beat": "beat-03",
+      "at": 150.3,
+      "subject": "the scale",
+      "action": "returns with spinning switch arrows on one pan",
+      "size": "wide",
+      "move": "glide",
+      "text": "Switching isn't proof you're failing"
+    },
+    {
+      "id": "b03-s11",
+      "beat": "beat-03",
+      "at": 155.6,
+      "subject": "the one-stack pan",
+      "action": "gets a pencil question mark",
+      "size": "mcu",
+      "move": "glide",
+      "text": "Not proven safe either"
+    },
+    {
+      "id": "b03-s12",
+      "beat": "beat-03",
+      "at": 160.4,
+      "subject": "a pencil margin note",
+      "action": "writes itself beside the scale",
+      "size": "cu",
+      "move": "push",
+      "text": "My judgment, not a finding"
+    },
+    {
+      "id": "b03-s13",
+      "beat": "beat-03",
+      "at": 165.9,
+      "subject": "a tally of switches",
+      "action": "is crossed out while 'what I learned' writes beside it",
+      "size": "wide",
+      "move": "pull",
+      "text": "Not how many times. What I learned"
+    },
+    {
+      "id": "b03-s14",
+      "beat": "beat-03",
+      "at": 171.2,
+      "subject": "the robot",
+      "action": "rolls in from the right edge",
+      "size": "mcu",
+      "move": "whip",
+      "text": "Where AI comes in",
+      "transitionOut": "mask grow from the robot's eye into Beat 4"
+    },
+    {
+      "id": "b04-s01",
+      "beat": "beat-04",
+      "at": 175.31,
+      "subject": "a study clipboard",
+      "action": "flips open on the desk",
+      "size": "mcu",
+      "move": "push",
+      "text": "Anthropic trial"
+    },
+    {
+      "id": "b04-s02",
+      "beat": "beat-04",
+      "at": 177.6,
+      "subject": "52 stick figures",
+      "action": "draw on in rows as a headcount tag counts to 52",
+      "size": "wide",
+      "move": "pull",
+      "text": "52 engineers, mostly junior"
+    },
+    {
+      "id": "b04-s03",
+      "beat": "beat-04",
+      "at": 179.75,
+      "subject": "a book labelled Trio",
+      "action": "drops into the crowd's hands",
+      "size": "cu",
+      "move": "push",
+      "text": "New Python library: Trio"
+    },
+    {
+      "id": "b04-s04",
+      "beat": "beat-04",
+      "at": 182.9,
+      "subject": "two figures at laptops",
+      "action": "split apart; one gets an AI chat bubble",
+      "size": "mcu",
+      "move": "glide",
+      "text": "AI assistant · by hand"
+    },
+    {
+      "id": "b04-s05",
+      "beat": "beat-04",
+      "at": 186.7,
+      "subject": "an arrow",
+      "action": "draws from both figures to one quiz sheet",
+      "size": "medium",
+      "move": "glide",
+      "text": "Quiz, right after"
+    },
+    {
+      "id": "b04-s06",
+      "beat": "beat-04",
+      "at": 189.15,
+      "subject": "a disclosure sticky note",
+      "action": "slaps onto the clipboard's corner and stays as a lower third",
+      "size": "cu",
+      "move": "cut",
+      "text": "Anthropic study. I use their product."
+    },
+    {
+      "id": "b04-s07",
+      "beat": "beat-04",
+      "at": 195.9,
+      "subject": "the AI group's bar",
+      "action": "fills to 50%",
+      "size": "mcu",
+      "move": "push",
+      "text": "AI 50%"
+    },
+    {
+      "id": "b04-s08",
+      "beat": "beat-04",
+      "at": 199.45,
+      "subject": "the by-hand bar",
+      "action": "fills higher, to 67%",
+      "size": "medium",
+      "move": "glide",
+      "text": "By hand 67%"
+    },
+    {
+      "id": "b04-s09",
+      "beat": "beat-04",
+      "at": 202,
+      "subject": "a bracket between the bars",
+      "action": "draws and labels the gap",
+      "size": "cu",
+      "move": "push",
+      "text": "Biggest gap: debugging"
+    },
+    {
+      "id": "b04-s10",
+      "beat": "beat-04",
+      "at": 204.1,
+      "subject": "a stopwatch on the AI bar",
+      "action": "ticks two minutes, then gets a 'not significant' tag",
+      "size": "mcu",
+      "move": "pull",
+      "text": "~2 min faster, not significant"
+    },
+    {
+      "id": "b04-s11",
+      "beat": "beat-04",
+      "at": 209.25,
+      "subject": "the two bars",
+      "action": "shake loose and split into two groups",
+      "size": "wide",
+      "move": "whip"
+    },
+    {
+      "id": "b04-s12",
+      "beat": "beat-04",
+      "at": 211,
+      "subject": "a grey bar",
+      "action": "fills to under 40% as a hand passes the work to the robot",
+      "size": "mcu",
+      "move": "push",
+      "text": "Handed it over: under 40%"
+    },
+    {
+      "id": "b04-s13",
+      "beat": "beat-04",
+      "at": 217.35,
+      "subject": "a coral bar",
+      "action": "fills past 65% under a 'why?' bubble",
+      "size": "cu",
+      "move": "glide",
+      "text": "Asked why: 65%+ avg"
+    },
+    {
+      "id": "b04-s14",
+      "beat": "beat-04",
+      "at": 223.7,
+      "subject": "a notepad of limits",
+      "action": "slides in as the chart moves aside",
+      "size": "wide",
+      "move": "pull",
+      "text": "The limits"
+    },
+    {
+      "id": "b04-s15",
+      "beat": "beat-04",
+      "at": 225.95,
+      "subject": "the limits notepad",
+      "action": "ticks '52 people' and 'quiz right after'",
+      "size": "mcu",
+      "move": "push",
+      "text": "52 people · quiz right after"
+    },
+    {
+      "id": "b04-s16",
+      "beat": "beat-04",
+      "at": 229.55,
+      "subject": "a sidebar chat window",
+      "action": "pops up beside a crossed-out agent robot",
+      "size": "cu",
+      "move": "glide",
+      "text": "Sidebar assistant, not an agent"
+    },
+    {
+      "id": "b04-s17",
+      "beat": "beat-04",
+      "at": 236.25,
+      "subject": "a cause arrow",
+      "action": "draws, then breaks in the middle",
+      "size": "mcu",
+      "move": "cut",
+      "text": "Can't prove cause"
+    },
+    {
+      "id": "b04-s18",
+      "beat": "beat-04",
+      "at": 240.55,
+      "subject": "the robot and a pencil",
+      "action": "sit side by side as 'how you use it' underlines",
+      "size": "medium",
+      "move": "pull",
+      "text": "How you use it matters"
+    },
+    {
+      "id": "b04-s19",
+      "beat": "beat-04",
+      "at": 245.45,
+      "subject": "the creator's project folder",
+      "action": "gets the 'made by agents' stamp again, then tilts as the camera eases out on 'contradicting myself'",
+      "size": "cu",
+      "move": "push",
+      "text": "Made by agents",
+      "transitionOut": "match cut: the stamped folder becomes a chain link (Beat 5)"
+    },
+    {
+      "id": "b05-s01",
+      "beat": "beat-05",
+      "at": 251.45,
+      "subject": "the chain",
+      "action": "returns; every link greys, then a coral thread draws under them all",
+      "size": "wide",
+      "move": "pull"
+    },
+    {
+      "id": "b05-s02",
+      "beat": "beat-05",
+      "at": 255.75,
+      "subject": "the thread's end tag",
+      "action": "slams 'DSA' and writes its full name below",
+      "size": "cu",
+      "move": "push",
+      "text": "DSA: data structures & algorithms"
+    },
+    {
+      "id": "b05-s03",
+      "beat": "beat-05",
+      "at": 258.1,
+      "subject": "the coral thread",
+      "action": "is followed back to the first link",
+      "size": "medium",
+      "move": "glide",
+      "text": "Since the start"
+    },
+    {
+      "id": "b05-s04",
+      "beat": "beat-05",
+      "at": 260.2,
+      "subject": "a timeline ruler",
+      "action": "extends five to six years past today",
+      "size": "mcu",
+      "move": "push",
+      "text": "I believe: 5–6 more years"
+    },
+    {
+      "id": "b05-s05",
+      "beat": "beat-05",
+      "at": 265.45,
+      "subject": "a problem-solving checklist",
+      "action": "ticks 'thinking' and 'problem solving'",
+      "size": "cu",
+      "move": "glide",
+      "text": "How thinking gets checked"
+    },
+    {
+      "id": "b05-s06",
+      "beat": "beat-05",
+      "at": 270.6,
+      "subject": "a bet token",
+      "action": "drops onto the DSA tag",
+      "size": "mcu",
+      "move": "pull",
+      "text": "My bet, not a fact"
+    },
+    {
+      "id": "b05-s07",
+      "beat": "beat-05",
+      "at": 274.2,
+      "subject": "a pencil note",
+      "action": "writes under the thread",
+      "size": "cu",
+      "move": "push",
+      "text": "What I'm sure about, not proven"
+    },
+    {
+      "id": "b05-s08",
+      "beat": "beat-05",
+      "at": 277.6,
+      "subject": "a 'go learn DSA' sign",
+      "action": "gets scribbled out",
+      "size": "mcu",
+      "move": "cut",
+      "text": "Go learn DSA"
+    },
+    {
+      "id": "b05-s09",
+      "beat": "beat-05",
+      "at": 281.95,
+      "subject": "your DSA practice (footage fs-01)",
+      "action": "plays inside a sketched frame hanging from the thread",
+      "size": "cu",
+      "move": "push"
+    },
+    {
+      "id": "b05-s10",
+      "beat": "beat-05",
+      "at": 287.3,
+      "subject": "the bet token",
+      "action": "wobbles on the tag",
+      "size": "mcu",
+      "move": "glide",
+      "text": "Nothing guarantees it"
+    },
+    {
+      "id": "b05-s11",
+      "beat": "beat-05",
+      "at": 289.6,
+      "subject": "the whole chain",
+      "action": "pulls back with the coral thread glowing underneath",
+      "size": "wide",
+      "move": "pull",
+      "text": "What I'd bet on",
+      "transitionOut": "paper turn into Beat 6 (the theme's own transition, used once)"
+    },
+    {
+      "id": "b06-s01",
+      "beat": "beat-06",
+      "at": 293.49,
+      "subject": "the chain's links",
+      "action": "slide apart into two piles",
+      "size": "wide",
+      "move": "pull"
+    },
+    {
+      "id": "b06-s02",
+      "beat": "beat-06",
+      "at": 298.2,
+      "subject": "the tool-name pile",
+      "action": "gets scribbled out link by link",
+      "size": "mcu",
+      "move": "glide",
+      "text": "Tool names"
+    },
+    {
+      "id": "b06-s03",
+      "beat": "beat-06",
+      "at": 300.7,
+      "subject": "the skills pile",
+      "action": "redraws in coral and stays",
+      "size": "medium",
+      "move": "glide",
+      "text": "Skills"
+    },
+    {
+      "id": "b06-s04",
+      "beat": "beat-06",
+      "at": 302.95,
+      "subject": "the skills pile",
+      "action": "writes 'break it down' and 'why it broke'",
+      "size": "cu",
+      "move": "push",
+      "text": "Break it down · why it broke"
+    },
+    {
+      "id": "b06-s05",
+      "beat": "beat-06",
+      "at": 306.3,
+      "subject": "the debugging bracket from Beat 4",
+      "action": "pins onto the skills pile",
+      "size": "mcu",
+      "move": "pull",
+      "text": "Debugging gap"
+    },
+    {
+      "id": "b06-s06",
+      "beat": "beat-06",
+      "at": 309.75,
+      "subject": "a big pencil question",
+      "action": "gets a hard 'No' stamp",
+      "size": "cu",
+      "move": "cut",
+      "text": "Does practice fix everything? No."
+    },
+    {
+      "id": "b06-s07",
+      "beat": "beat-06",
+      "at": 312.7,
+      "subject": "a pile of papers",
+      "action": "stacks up as its count reaches 88",
+      "size": "mcu",
+      "move": "pull",
+      "text": "88 studies"
+    },
+    {
+      "id": "b06-s08",
+      "beat": "beat-06",
+      "at": 316.4,
+      "subject": "the games bar",
+      "action": "fills to 26%; source label 'Macnamara et al. 2014' sits in the corner",
+      "size": "cu",
+      "move": "push",
+      "text": "Games 26%"
+    },
+    {
+      "id": "b06-s09",
+      "beat": "beat-06",
+      "at": 320.35,
+      "subject": "the music and sports bars",
+      "action": "fill to 21% and 18% as the camera glides on",
+      "size": "mcu",
+      "move": "glide",
+      "text": "Music 21% · sports 18%"
+    },
+    {
+      "id": "b06-s10",
+      "beat": "beat-06",
+      "at": 323.5,
+      "subject": "the education and professions bars",
+      "action": "shrink to 4% and a sliver under 1%",
+      "size": "cu",
+      "move": "glide",
+      "text": "Education 4% · professions under 1%"
+    },
+    {
+      "id": "b06-s11",
+      "beat": "beat-06",
+      "at": 326.55,
+      "subject": "an empty sixth slot",
+      "action": "draws as a dashed outline labelled software engineering",
+      "size": "wide",
+      "move": "pull",
+      "text": "Software engineering not included"
+    },
+    {
+      "id": "b06-s12",
+      "beat": "beat-06",
+      "at": 330.55,
+      "subject": "a press-release clipping",
+      "action": "pins over the chart",
+      "size": "mcu",
+      "move": "push",
+      "text": "Not perfect, but almost everyone better"
+    },
+    {
+      "id": "b06-s13",
+      "beat": "beat-06",
+      "at": 337.9,
+      "subject": "the clipping's margin",
+      "action": "writes 'helps' and crosses out 'magic'",
+      "size": "cu",
+      "move": "glide",
+      "text": "Helps. Isn't magic"
+    },
+    {
+      "id": "b06-s14",
+      "beat": "beat-06",
+      "at": 340.75,
+      "subject": "a two-column page",
+      "action": "flips in beside the chart",
+      "size": "wide",
+      "move": "whip",
+      "text": "10 study techniques"
+    },
+    {
+      "id": "b06-s15",
+      "beat": "beat-06",
+      "at": 344.6,
+      "subject": "the left column",
+      "action": "ticks 'test yourself' and 'space it out' in coral",
+      "size": "mcu",
+      "move": "push",
+      "text": "Test yourself · space it out"
+    },
+    {
+      "id": "b06-s16",
+      "beat": "beat-06",
+      "at": 348.45,
+      "subject": "the right column",
+      "action": "greys and crosses out 'reread' and 'highlight'",
+      "size": "mcu",
+      "move": "glide",
+      "text": "Reread · highlight"
+    },
+    {
+      "id": "b06-s17",
+      "beat": "beat-06",
+      "at": 351.25,
+      "subject": "a pencil margin note",
+      "action": "writes under the columns",
+      "size": "cu",
+      "move": "push",
+      "text": "My extension, not a result"
+    },
+    {
+      "id": "b06-s18",
+      "beat": "beat-06",
+      "at": 358.7,
+      "subject": "a big hand-drawn 64% on a laptop screen",
+      "action": "counts up, with 'from 44%' in pencil; source label 'Stack Overflow, March 2026'",
+      "size": "mcu",
+      "move": "pull",
+      "text": "64% use AI to learn"
+    },
+    {
+      "id": "b06-s19",
+      "beat": "beat-06",
+      "at": 366.3,
+      "subject": "a pencil circle",
+      "action": "rings '1% alone' beside the 64%",
+      "size": "cu",
+      "move": "push",
+      "text": "Only 1% use it alone"
+    },
+    {
+      "id": "b06-s20",
+      "beat": "beat-06",
+      "at": 368.55,
+      "subject": "a docs book",
+      "action": "slides in beside the robot, pairing up",
+      "size": "medium",
+      "move": "pull",
+      "text": "Most pair it with docs",
+      "transitionOut": "push-through into the book's page (the video's one depth dive)"
+    },
+    {
+      "id": "b07-s01",
+      "beat": "beat-07",
+      "at": 371.33,
+      "subject": "a checklist page",
+      "action": "draws three empty numbered boxes",
+      "size": "wide",
+      "move": "pull",
+      "text": "3 rules, not guaranteed"
+    },
+    {
+      "id": "b07-s02",
+      "beat": "beat-07",
+      "at": 376.1,
+      "subject": "box one",
+      "action": "fills with its rule",
+      "size": "mcu",
+      "move": "push",
+      "text": "Ask AI to explain, not just do"
+    },
+    {
+      "id": "b07-s03",
+      "beat": "beat-07",
+      "at": 378.5,
+      "subject": "your Claude Code recording, left half (footage fs-02)",
+      "action": "plays the 'do it' prompt inside a sketched frame",
+      "size": "medium",
+      "move": "glide",
+      "text": "Do it"
+    },
+    {
+      "id": "b07-s04",
+      "beat": "beat-07",
+      "at": 383.55,
+      "subject": "the right half (footage fs-02)",
+      "action": "plays the 'explain why first' prompt",
+      "size": "mcu",
+      "move": "glide",
+      "text": "Explain first"
+    },
+    {
+      "id": "b07-s05",
+      "beat": "beat-07",
+      "at": 389.6,
+      "subject": "the coral high-scorer bar from Beat 4",
+      "action": "slides in beside the 'explain' half; a 'can't prove cause' tag follows",
+      "size": "cu",
+      "move": "push",
+      "text": "Closer to the high scorers"
+    },
+    {
+      "id": "b07-s06",
+      "beat": "beat-07",
+      "at": 397.85,
+      "subject": "box two",
+      "action": "ticks as its rule writes",
+      "size": "mcu",
+      "move": "pull",
+      "text": "Try it again without AI"
+    },
+    {
+      "id": "b07-s07",
+      "beat": "beat-07",
+      "at": 401.2,
+      "subject": "the chat window",
+      "action": "folds shut as a pencil writes the code",
+      "size": "cu",
+      "move": "push",
+      "text": "From memory"
+    },
+    {
+      "id": "b07-s08",
+      "beat": "beat-07",
+      "at": 403.25,
+      "subject": "a calendar strip",
+      "action": "gets a 'no AI' tick on today, tomorrow and next week",
+      "size": "medium",
+      "move": "glide",
+      "text": "Today · tomorrow · next week"
+    },
+    {
+      "id": "b07-s09",
+      "beat": "beat-07",
+      "at": 409.6,
+      "subject": "a pencil margin note",
+      "action": "writes beside the calendar",
+      "size": "cu",
+      "move": "push",
+      "text": "Studied on students: my version"
+    },
+    {
+      "id": "b07-s10",
+      "beat": "beat-07",
+      "at": 415.1,
+      "subject": "box three",
+      "action": "pops a shiny bulb",
+      "size": "mcu",
+      "move": "pull",
+      "text": "A shiny new idea"
+    },
+    {
+      "id": "b07-s11",
+      "beat": "beat-07",
+      "at": 419.9,
+      "subject": "a play button",
+      "action": "pulses beside the bulb",
+      "size": "cu",
+      "move": "whip"
+    },
+    {
+      "id": "b07-s12",
+      "beat": "beat-07",
+      "at": 422.35,
+      "subject": "the runner",
+      "action": "starts after the bulb, then stops",
+      "size": "medium",
+      "move": "glide",
+      "text": "Don't chase it, don't ignore it"
+    },
+    {
+      "id": "b07-s13",
+      "beat": "beat-07",
+      "at": 424.8,
+      "subject": "a parking note with a paper clip",
+      "action": "writes its three lines",
+      "size": "cu",
+      "move": "push",
+      "text": "What it is · first step · when"
+    },
+    {
+      "id": "b07-s14",
+      "beat": "beat-07",
+      "at": 427.8,
+      "subject": "the parked note",
+      "action": "clips onto a thin side string",
+      "size": "mcu",
+      "move": "pull",
+      "text": "A specific plan for an unfinished goal"
+    },
+    {
+      "id": "b07-s15",
+      "beat": "beat-07",
+      "at": 431.8,
+      "subject": "the main link",
+      "action": "stops shaking",
+      "size": "cu",
+      "move": "push",
+      "text": "Stopped interfering"
+    },
+    {
+      "id": "b07-s16",
+      "beat": "beat-07",
+      "at": 436.25,
+      "subject": "a small nudge arrow",
+      "action": "pokes the main link",
+      "size": "mcu",
+      "move": "cut",
+      "text": "Lab studies: take it as a nudge"
+    },
+    {
+      "id": "b07-s17",
+      "beat": "beat-07",
+      "at": 441.25,
+      "subject": "the pencil",
+      "action": "returns to the main link",
+      "size": "cu",
+      "move": "push",
+      "text": "Back to the main thing",
+      "transitionOut": "pull-back into the object: the main link shrinks into the closing chain"
+    },
+    {
+      "id": "b08-s01",
+      "beat": "beat-08",
+      "at": 444.19,
+      "subject": "the hook question from Beat 1",
+      "action": "pops back word by word, 'learn' in coral",
+      "size": "medium",
+      "move": "pull",
+      "text": "If AI can code, what should I learn?"
+    },
+    {
+      "id": "b08-s02",
+      "beat": "beat-08",
+      "at": 448.7,
+      "subject": "a pencil note",
+      "action": "writes 'still sorting it out' under the question",
+      "size": "cu",
+      "move": "push",
+      "text": "Nothing is guaranteed"
+    },
+    {
+      "id": "b08-s03",
+      "beat": "beat-08",
+      "at": 453.25,
+      "subject": "the page",
+      "action": "flips to a fresh chain sketch",
+      "size": "wide",
+      "move": "cut",
+      "text": "Improve your odds"
+    },
+    {
+      "id": "b08-s04",
+      "beat": "beat-08",
+      "at": 455.2,
+      "subject": "one thick coral main link",
+      "action": "draws in the centre as small finished ticks click on",
+      "size": "cu",
+      "move": "push",
+      "text": "One main thing. Small, real, finished"
+    },
+    {
+      "id": "b08-s05",
+      "beat": "beat-08",
+      "at": 459.8,
+      "subject": "the calendar strip and the robot's 'why?' bubble",
+      "action": "hang from the main link in turn",
+      "size": "mcu",
+      "move": "glide",
+      "text": "Test, space it out. Explain, not do"
+    },
+    {
+      "id": "b08-s06",
+      "beat": "beat-08",
+      "at": 464.05,
+      "subject": "parked side-links",
+      "action": "hang off on thin strings: 'AWS', 'new protocol idea'",
+      "size": "wide",
+      "move": "pull",
+      "text": "Park new ideas"
+    },
+    {
+      "id": "b08-s07",
+      "beat": "beat-08",
+      "at": 468.2,
+      "subject": "the finished chain",
+      "action": "holds as the camera slowly pushes in",
+      "size": "mcu",
+      "move": "push",
+      "text": "Not a tool name. A way of learning"
+    },
+    {
+      "id": "b08-s08",
+      "beat": "beat-08",
+      "at": 473.2,
+      "subject": "a blank link at the chain's end",
+      "action": "draws open and the pencil sets down beside it",
+      "size": "wide",
+      "move": "pull",
+      "text": "Where are you on yours?",
+      "transitionOut": "end on the action, no end card"
+    }
+  ]
+}

@@ -82,6 +82,11 @@ export class Mic {
     return this.stream.getAudioTracks()[0]?.getSettings().deviceId ?? null;
   }
 
+  // The live mic track, recorded into the face cam file as a reference for syncing it to the voice take.
+  get track(): MediaStreamTrack | null {
+    return this.stream.getAudioTracks()[0] ?? null;
+  }
+
   private onSamples(chunk: Float32Array): void {
     let sum = 0;
     let peak = 0;
