@@ -33,6 +33,8 @@ const out = (e) => process.stdout.write(JSON.stringify(e) + "\\n");
 out({ type: "system", subtype: "init", session_id: "sess-" + folder });
 out({ type: "assistant", parent_tool_use_id: null, message: { content: [{ type: "text", text: "Working on it." }, { type: "tool_use", name: "Agent", input: { subagent_type: "researcher", description: "Research the idea" } }] } });
 if (readFileSync(file, "utf8").includes("LIMIT")) {
+  out({ type: "assistant", parent_tool_use_id: null, message: { content: [{ type: "tool_use", name: "TodoWrite", input: { todos: [{ content: "Build beat 3", status: "completed" }, { content: "Build beat 4", status: "in_progress" }] } }] } });
+  out({ type: "assistant", parent_tool_use_id: null, message: { content: [{ type: "tool_use", name: "Write", input: { file_path: process.cwd() + "/videos/" + folder + "/edit/scenes/beat-03.tsx", content: "x" } }] } });
   out({ type: "rate_limit_event", rate_limit_info: { status: "rejected", resetsAt: 4102444800, unifiedWindows: { five_hour: { utilization: 1, resetsAt: 4102444800 } } } });
   out({ type: "result", subtype: "error_during_execution", is_error: true, result: "Claude AI usage limit reached" });
   process.exit(1);
@@ -149,7 +151,42 @@ describe("runner", () => {
     expect(runner.listRuns(id)[0]?.state).toBe("paused");
     expect(runner.listRuns(id)[0]?.feed.at(-1)?.kind).toBe("pause");
     expect(existsSync(path.join(videosDir, ".studio-runner.json"))).toBe(true);
+    // The paused run's checkpoint survived, and the re-queued job will switch the same session back in.
+    const paused = runner.listRuns(id)[0]!;
+    expect(paused.checkpoint?.todos.map((t) => t.status)).toEqual(["completed", "in_progress"]);
+    expect(paused.checkpoint?.files.some((f) => f.endsWith("edit/scenes/beat-03.tsx"))).toBe(true);
+    expect(paused.checkpoint?.resumeAt).toBe(status.pausedUntil);
+    const queued = JSON.parse(readFileSync(path.join(videosDir, ".studio-runner.json"), "utf8")).queue[0];
+    expect(queued.resume.sessionId).toBe(`sess-${id}`);
+    expect(queued.resume.from).toBe(paused.id);
     runner.stop(id);
     expect(runner.runnerStatus().queued).toBe(0);
+  });
+});
+
+describe("checkpoints", () => {
+  it("records the task list and written files, but not a subagent's own task list", () => {
+    const cp = { todos: [], files: [], pausedAt: null, resumeAt: null, resumedFrom: null };
+    const todo = (parent: string | null) => ({ type: "assistant", parent_tool_use_id: parent, message: { content: [{ type: "tool_use", name: "TodoWrite", input: { todos: [{ content: parent ? "sub step" : "main step", status: "pending" }] } }] } });
+    expect(runner.recordCheckpoint(cp, todo(null))).toBe(true);
+    expect(runner.recordCheckpoint(cp, todo("toolu_sub"))).toBe(false);
+    expect(cp.todos).toEqual([{ content: "main step", status: "pending" }]);
+    runner.recordCheckpoint(cp, { type: "assistant", message: { content: [{ type: "tool_use", name: "Edit", input: { file_path: "/x/notes.md" } }] } });
+    expect(cp.files).toHaveLength(1);
+    expect(runner.recordCheckpoint(cp, { type: "assistant", message: { content: [{ type: "tool_use", name: "Edit", input: { file_path: "/x/notes.md" } }] } })).toBe(false);
+  });
+
+  it("switches a paused session back in with its checkpoint, or starts fresh with it when there's no session", () => {
+    const checkpoint = { todos: [{ content: "Build beat 4", status: "in_progress" as const }], files: ["videos/001/edit/scenes/beat-03.tsx"], pausedAt: "2026-11-23T10:00:00Z", resumeAt: null, resumedFrom: null };
+    const job = { id: "j1", videoId: "001-test", kind: "next" as const, queuedAt: "", resume: { sessionId: "sess-1", from: "r0", checkpoint } };
+    const resumed = runner.buildArgs(job, "gated", null);
+    expect(resumed.slice(resumed.indexOf("--resume"), resumed.indexOf("--resume") + 2)).toEqual(["--resume", "sess-1"]);
+    const prompt = resumed[resumed.indexOf("-p") + 1]!;
+    expect(prompt).toContain("Continue exactly where you stopped");
+    expect(prompt).toContain("[~] Build beat 4");
+    expect(prompt).toContain("beat-03.tsx");
+    const fresh = runner.buildArgs({ ...job, resume: { ...job.resume, sessionId: null } }, "gated", null);
+    expect(fresh).not.toContain("--resume");
+    expect(fresh[fresh.indexOf("-p") + 1]).toMatch(/^\[studio-run mode=gated\] \/studio next videos\/001-test\n\nYou were paused/);
   });
 });

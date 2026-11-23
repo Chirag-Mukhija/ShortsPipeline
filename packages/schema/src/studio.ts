@@ -22,6 +22,17 @@ export type RunState = "queued" | "running" | "done" | "failed" | "stopped" | "p
 
 export type FeedLine = { at: string; kind: "start" | "text" | "tool" | "agent" | "result" | "error" | "pause"; text: string };
 
+// A run's saved state, like an OS process control block: written continuously while the run works, so a run stopped by the usage limit can be switched back in (same Claude session) and continue where it stopped instead of starting over.
+export type RunTodo = { content: string; status: "pending" | "in_progress" | "completed" };
+export type RunCheckpoint = {
+  todos: RunTodo[];
+  files: string[];
+  pausedAt: string | null;
+  resumeAt: string | null;
+  // The run this one continues, when it was switched back in after a pause.
+  resumedFrom: string | null;
+};
+
 export type RunSummary = {
   id: string;
   videoId: string;
@@ -31,6 +42,8 @@ export type RunSummary = {
   endedAt: string | null;
   costUsd: number | null;
   feed: FeedLine[];
+  sessionId?: string | null;
+  checkpoint?: RunCheckpoint;
 };
 
 export type VideoSummary = {

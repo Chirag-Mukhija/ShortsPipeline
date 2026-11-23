@@ -233,6 +233,14 @@ function Now({ video }: { video: VideoDetail }) {
   const recorded = video.stages.some((stage) => stage.name === "record" && /^done\b/.test(stage.state));
   const lastLine = video.runs[0]?.feed.at(-1)?.text;
   const error = run.error ?? stop.error;
+  // The run's checkpoint (its task list): which step it's on, and where a paused run will continue from.
+  const latest = video.runs[0];
+  const todos = latest?.checkpoint?.todos ?? [];
+  const stepsDone = todos.filter((t) => t.status === "completed").length;
+  const step = todos.find((t) => t.status === "in_progress") ?? todos.find((t) => t.status === "pending");
+  const resumeAt = latest?.checkpoint?.resumeAt ? Date.parse(latest.checkpoint.resumeAt) : NaN;
+  // Shown only while the resume time is near: a paused run the creator stopped by hand shouldn't leave a stale banner.
+  const paused = !video.running && latest?.state === "paused" && Number.isFinite(resumeAt) && resumeAt > Date.now() - 30 * 60_000;
 
   let body: ReactNode;
   if (video.running) {
@@ -242,7 +250,13 @@ function Now({ video }: { video: VideoDetail }) {
         text={
           <>
             <span className="text-ink">The team is working on the {named(video, video.currentStage ?? "")}</span>
-            {lastLine ? <span className="text-dim"> · {lastLine}</span> : null}
+            {step && todos.length > 1 ? (
+              <span className="text-dim">
+                {" "}· step {Math.min(stepsDone + 1, todos.length)} of {todos.length}: {step.content}
+              </span>
+            ) : lastLine ? (
+              <span className="text-dim"> · {lastLine}</span>
+            ) : null}
           </>
         }
         action={
@@ -257,6 +271,25 @@ function Now({ video }: { video: VideoDetail }) {
               <StopIcon size={12} /> Stop
             </Button>
           </div>
+        }
+      />
+    );
+  } else if (paused) {
+    body = (
+      <StatusBar
+        text={
+          <>
+            <span className="text-warn">Paused by the usage limit</span>
+            <span className="text-muted">
+              {" "}· continues by itself at {new Date(resumeAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+              {step ? `, from "${step.content}" (${stepsDone} of ${todos.length} steps done)` : ", from where it stopped"}. Nothing is redone.
+            </span>
+          </>
+        }
+        action={
+          <Button size="sm" title="Only if your limit has already reset (for example after upgrading); otherwise it pauses again." onClick={() => void studio.resume()}>
+            Resume now
+          </Button>
         }
       />
     );

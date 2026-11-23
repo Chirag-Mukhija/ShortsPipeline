@@ -15,7 +15,9 @@
     "remotion": "pnpm --filter @clipforge/video studio",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "setup:denoise": "sh scripts/setup-denoise.sh"
+    "setup:denoise": "sh scripts/setup-denoise.sh",
+    "kit:catalog": "apps/server/node_modules/.bin/tsx scripts/kit-catalog.ts",
+    "cut:check": "apps/server/node_modules/.bin/tsx scripts/check-cut.ts"
   },
   "devDependencies": {
     "typescript": "^7.0.2"

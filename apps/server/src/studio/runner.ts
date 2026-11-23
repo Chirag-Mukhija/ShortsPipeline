@@ -1,11 +1,11 @@
-// Runs studio stages as headless Claude Code sessions, one at a time: queues, chains stages, streams a live feed and pauses at the Pro usage limit.
+// Runs studio stages as headless Claude Code sessions, one at a time: queues, chains stages, streams a live feed, keeps a checkpoint of every run, and at the Pro usage limit pauses and later switches the same session back in.
 import { spawn, type ChildProcess } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import { nanoid } from "nanoid";
-import type { FeedLine, RunSummary, RunnerStatus, Usage, VideoMode } from "@clipforge/schema";
+import type { FeedLine, RunCheckpoint, RunSummary, RunTodo, RunnerStatus, Usage, VideoMode } from "@clipforge/schema";
 import { ROOT_DIR, env } from "../config";
 import { exec } from "../lib/exec";
 import { StepError } from "../pipeline/errors";
@@ -30,7 +30,9 @@ export const ALLOWED_TOOLS = [
   "Bash(node scripts/assemble.mjs:*)",
 ];
 
-type Job = { id: string; videoId: string; kind: "next" | "message"; text?: string; queuedAt: string };
+// `resume`: this job continues a run the usage limit stopped. With a session id it switches that session back in; without one (the session couldn't be resumed) it starts fresh but is told what was already done.
+type Resume = { sessionId: string | null; from: string; checkpoint: RunCheckpoint };
+type Job = { id: string; videoId: string; kind: "next" | "message"; text?: string; queuedAt: string; resume?: Resume };
 type Persisted = { queue: Job[]; pausedUntil: string | null; usage: Usage | null };
 
 const STATE_FILE = path.join(VIDEOS_DIR, ".studio-runner.json");
@@ -106,13 +108,25 @@ function stageSnapshot(videoId: string): string {
   return JSON.stringify(stages.map((stage) => [stage.name, stage.state]));
 }
 
+// What a resumed run is told: where it stopped, its own task list, and the files it had already written.
+function resumeNote(r: Resume): string {
+  const todos = r.checkpoint.todos.map((t) => `- [${t.status === "completed" ? "x" : t.status === "in_progress" ? "~" : " "}] ${t.content}`).join("\n");
+  const files = r.checkpoint.files.slice(-20).map((f) => `- ${f}`).join("\n");
+  return [
+    `You were paused by the Pro usage limit${r.checkpoint.pausedAt ? ` at ${r.checkpoint.pausedAt}` : ""} and are being resumed. Continue exactly where you stopped. Don't redo finished work: check the files below first, then carry on with the first unfinished step.`,
+    todos ? `Your task list when you stopped ([x] done, [~] in progress):\n${todos}` : "",
+    files ? `Files you had written or edited:\n${files}` : "",
+  ].filter(Boolean).join("\n\n");
+}
+
 export function buildArgs(job: Job, mode: VideoMode, resume: string | null): string[] {
   // Decision: a run from the website is never "chat" mode, since nobody can answer AskUserQuestion mid-run.
   const runMode = mode === "chat" ? "gated" : mode;
-  const prompt =
+  const base =
     job.kind === "next"
       ? `[studio-run mode=${runMode}] /studio next videos/${job.videoId}`
       : `[studio-run mode=${runMode}] The creator sent this from the studio website about videos/${job.videoId}:\n"""\n${job.text ?? ""}\n"""\nAnswer them briefly. If it changes the video, update the files and log it in status.md. Don't start the next stage unless they ask.`;
+  const prompt = job.resume ? (job.resume.sessionId ? `[studio-run mode=${runMode}] ${resumeNote(job.resume)}` : `${base}\n\n${resumeNote(job.resume)}`) : base;
   const args = [
     "-p", prompt,
     "--output-format", "stream-json", "--verbose",
@@ -122,8 +136,30 @@ export function buildArgs(job: Job, mode: VideoMode, resume: string | null): str
     "--add-dir", path.join(homedir(), ".claude", "youtube"),
     "--allowedTools", ...ALLOWED_TOOLS,
   ];
-  if (resume && job.kind === "message") args.push("--resume", resume);
+  if (job.resume?.sessionId) args.push("--resume", job.resume.sessionId);
+  else if (resume && job.kind === "message") args.push("--resume", resume);
   return args;
+}
+
+// Updates the checkpoint from one stream event: the agent's task list (TodoWrite) and every file written or edited, its own or a subagent's. True when something changed.
+export function recordCheckpoint(cp: RunCheckpoint, event: StreamEvent): boolean {
+  const blocks = Array.isArray(event.message?.content) ? event.message.content : [];
+  let changed = false;
+  for (const block of blocks as { type?: string; name?: string; input?: Record<string, unknown> }[]) {
+    if (block.type !== "tool_use" || !block.input) continue;
+    if (block.name === "TodoWrite" && Array.isArray(block.input.todos) && !event.parent_tool_use_id) {
+      cp.todos = (block.input.todos as RunTodo[]).map((t) => ({ content: String(t.content), status: t.status }));
+      changed = true;
+    }
+    if ((block.name === "Write" || block.name === "Edit") && typeof block.input.file_path === "string") {
+      const rel = path.relative(ROOT_DIR, block.input.file_path);
+      if (!cp.files.includes(rel)) {
+        cp.files.push(rel);
+        changed = true;
+      }
+    }
+  }
+  return changed;
 }
 
 function feed(summary: RunSummary, line: Omit<FeedLine, "at">): void {
@@ -168,7 +204,10 @@ function shouldChain(videoId: string, before: string): boolean {
 
 function start(job: Job): void {
   const mode = modeOf(job.videoId);
-  const summary: RunSummary = { id: job.id, videoId: job.videoId, kind: job.kind, state: "running", startedAt: now(), endedAt: null, costUsd: null, feed: [] };
+  const checkpoint: RunCheckpoint = job.resume
+    ? { ...job.resume.checkpoint, pausedAt: null, resumeAt: null, resumedFrom: job.resume.from }
+    : { todos: [], files: [], pausedAt: null, resumeAt: null, resumedFrom: null };
+  const summary: RunSummary = { id: job.id, videoId: job.videoId, kind: job.kind, state: "running", startedAt: now(), endedAt: null, costUsd: null, feed: [], sessionId: job.resume?.sessionId ?? null, checkpoint };
   const before = stageSnapshot(job.videoId);
   const rawLog = path.join(runsDir(job.videoId), `${job.id}.jsonl`);
   const child = spawn(env.CLAUDE_CLI_PATH, buildArgs(job, mode, lastSession(job.videoId)), {
@@ -178,7 +217,10 @@ function start(job: Job): void {
     stdio: ["ignore", "pipe", "pipe"],
   });
   active = { job, child, summary };
-  feed(summary, { kind: "start", text: job.kind === "next" ? `running the next stage (${mode} mode)` : `sending your message to the showrunner` });
+  feed(summary, {
+    kind: "start",
+    text: job.resume ? `resuming where the usage limit stopped it${job.resume.sessionId ? "" : " (fresh session, with the saved checkpoint)"}` : job.kind === "next" ? `running the next stage (${mode} mode)` : `sending your message to the showrunner`,
+  });
   writeSummary(summary);
   broadcast(job.videoId);
 
@@ -195,7 +237,11 @@ function start(job: Job): void {
       return;
     }
     const read = interpret(event);
-    if (read.sessionId) writeFileSync(sessionFile(job.videoId), JSON.stringify({ sessionId: read.sessionId }));
+    if (read.sessionId) {
+      writeFileSync(sessionFile(job.videoId), JSON.stringify({ sessionId: read.sessionId }));
+      summary.sessionId = read.sessionId;
+    }
+    if (recordCheckpoint(checkpoint, event)) writeSummary(summary);
     if (read.usage) {
       state.usage = { ...read.usage, checkedAt: now() };
       save();
@@ -217,10 +263,19 @@ function start(job: Job): void {
   child.on("close", (code) => {
     const stoppedByCreator = summary.state === "stopped";
     summary.endedAt = now();
+    // A resumed session that no longer exists fails at once: run it again fresh, still carrying the checkpoint.
+    const lostSession = job.resume?.sessionId && !ok && /no conversation found|session.*not found/i.test(`${stderr} ${summary.feed.slice(-3).map((l) => l.text).join(" ")}`);
     if (limited) {
       summary.state = "paused";
-      state.queue.unshift({ ...job, id: nanoid(10), queuedAt: now() });
-      pauseUntil(resumeTime(limited), summary);
+      const until = resumeTime(limited);
+      checkpoint.pausedAt = now();
+      checkpoint.resumeAt = until;
+      state.queue.unshift({ ...job, id: nanoid(10), queuedAt: now(), resume: { sessionId: summary.sessionId ?? null, from: summary.id, checkpoint: { ...checkpoint } } });
+      pauseUntil(until, summary);
+    } else if (lostSession) {
+      summary.state = "failed";
+      feed(summary, { kind: "error", text: "the paused session couldn't be resumed; starting it again with the saved checkpoint" });
+      state.queue.unshift({ ...job, id: nanoid(10), queuedAt: now(), resume: { sessionId: null, from: job.resume!.from, checkpoint: { ...checkpoint } } });
     } else if (!stoppedByCreator) {
       summary.state = ok && code === 0 ? "done" : "failed";
       if (summary.state === "failed" && stderr.trim()) feed(summary, { kind: "error", text: stderr.trim().split("\n").slice(-3).join(" ") });

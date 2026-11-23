@@ -62,6 +62,16 @@ Every video has a `status.md`. Update it after each stage and log every creative
 - `apps/studio`: the web UI
 - `packages/video`: the Remotion video engine. `src/kit/` holds the scene templates a timeline uses (contract in `kit/contract.ts`; built unattended by `scripts/kit-queue.ts` from `data/library/kit/briefs/`, rules in `.claude/skills/studio/kit-builder.md`). `src/library/` holds the 32 visual themes: reference and inspiration only.
 - `scripts/motion-qa.mjs <video>`: checks any render for shake, flashes, black and frozen frames. Run it on every render.
+- `pnpm kit:catalog` writes the kit's menu card (`data/library/kit/MENU.md`, one row per template; `catalog.json` holds the details). Templates are a **base to adapt per video**, never a menu to fill.
+- `pnpm cut:check <edit.json>` checks a Cut plan (schema in `packages/schema/src/cut.ts`) before anything renders. It checks:
+  - every second is covered
+  - templates fit and their props are valid
+  - media is there
+  - there's no repetition
+  - the face/graphics/footage mix is on target
+
+  Fix every red issue it reports.
+- Website runs keep a checkpoint (task list and files written) and, after a usage-limit pause, resume the same session from it. Multi-step stages keep a TodoWrite list (see the studio skill).
 - `packages/schema`: shared types
 - Commands: `pnpm dev`, `pnpm test`, `pnpm typecheck`, `pnpm transcribe <file>` (writes `.txt` + `.srt`), `pnpm setup:denoise` (installs DeepFilterNet for the Record page's noise cleanup; without it, ffmpeg's filter is used)
 - Code style: every file starts with a one-line comment stating its responsibility. Other comments only for non-obvious decisions.

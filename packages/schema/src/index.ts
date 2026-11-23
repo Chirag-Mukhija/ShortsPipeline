@@ -12,3 +12,4 @@ export * from "./studio";
 export * from "./record";
 export * from "./edit";
 export * from "./mix";
+export * from "./cut";

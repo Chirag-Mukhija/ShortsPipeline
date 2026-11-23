@@ -5,7 +5,7 @@ Goal: from a recorded voice and face cam, a watchable **draft cut** in minutes, 
 ## Step A: the timeline and its renderer (no agents)
 **What you get:** a hand-written `edit.json` for a 1-minute test recording renders into a real video: your face cam, templates beside or over it, and transitions. Change a word or a template and only that segment re-renders.
 
-- **Timeline v2** (`packages/schema/src/cut.ts`): the video's style (a preset or tokens), the narration, the face cam, the music, and **segments** `{ id, start, end, layout, template?, props?, media?, face?: { zoom, focus }, transitionIn }`.
+- **Timeline v2** (`packages/schema/src/cut.ts`, ✅ built with its checker `pnpm cut:check`): the video's style, the face cam, and **segments** `{ id, start, end, layout, visual?, media, move?, transitionIn }`. A segment's `visual` is either a kit template used as is, or **a scene written for this video, adapted from the templates it names in `basedOn`**. Templates are a base and inspiration, never a menu to fill (the creator's call, 2026-11-23).
   - Layouts: `face` (you, full frame), `full` (a template full frame), `split` (you on the left, a 1000×1080 template panel on the right), `overlay` (a template on top of you).
   - Segments are contiguous on the narration's timeline. Each segment's `cues` are filled automatically from `narration.json`, in seconds from the segment's start.
 - **Renderer** (`packages/video/src/cut/`):
@@ -23,7 +23,7 @@ Goal: from a recorded voice and face cam, a watchable **draft cut** in minutes, 
 ## Step B: the planner (one Sonnet run per video)
 **What you get:** the team writes that timeline for a whole video, cheaply.
 
-- **Kit catalog** (`scripts/kit-catalog.ts`): a generated JSON listing each template's id, mode, layouts, useFor/avoid, its props as JSON Schema, and one example. It's the only thing the planner reads about the kit, so the token cost stays small.
+- **Kit menu card** (✅ `pnpm kit:catalog` → `data/library/kit/MENU.md`, about 1,200 tokens, plus `catalog.json` for details): what the planner reads about the kit.
 - **Planner agent** (Sonnet). It reads:
   - the tagged script
   - the narration words

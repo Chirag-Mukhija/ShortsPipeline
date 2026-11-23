@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "duration": 42,
+  "faceCam": true,
+  "style": "studio",
+  "segments": [
+    { "id": "hook", "start": 0, "end": 4, "layout": "full", "visual": { "kind": "template", "template": "title-card", "props": { "lines": ["Why do we", "forget things?"], "emphasis": "forget" } }, "transitionIn": "cut" },
+    { "id": "me-1", "start": 4, "end": 12, "layout": "face", "move": "punch-in" },
+    { "id": "stat", "start": 12, "end": 18, "layout": "split", "visual": { "kind": "template", "template": "stat-punch", "props": { "value": "seventy" } } },
+    { "id": "notes", "start": 18, "end": 26, "layout": "full", "visual": { "kind": "template", "template": "footage-reveal", "props": { "label": "My notes from that week", "reveal": "grow" } }, "media": [{ "kind": "video", "need": "screen recording: scrolling my notes app" }] },
+    { "id": "me-2", "start": 26, "end": 34, "layout": "face", "move": "punch-in" },
+    { "id": "outro", "start": 34, "end": 41, "layout": "overlay", "visual": { "kind": "scene", "file": "scenes/outro.tsx", "basedOn": ["list-tick"] } }
+  ]
+}
