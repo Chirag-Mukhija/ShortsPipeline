@@ -4,8 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type ReactNode } from "react";
 import { studio } from "../api";
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, MicIcon, PlayIcon, StopIcon, UploadIcon } from "../components/icons";
+import { FreeSpace } from "../components/FreeSpace";
 import { Markdown } from "../components/Markdown";
 import { Button, Empty, Segmented, Tabs } from "../components/ui";
+import { Watch, onCutRoute } from "../components/Watch";
 import { hrefOf, navigate } from "../hooks";
 import { AUDIO_CHOICES, STAGES, cardState } from "./Board";
 
@@ -48,7 +50,7 @@ function stageTarget(video: VideoDetail, stage: string): "doc" | "record" | "edi
   if (stage === "record") return video.audio === "music" || !video.files.includes("script.md") ? null : "record";
   if (stage === "edit + graphics" || stage === "rough cut") {
     const reached = video.stages.some((s) => s.name === "record" && /^(done|skipped)\b/.test(s.state));
-    return reached ? "edit" : null;
+    return reached && video.files.includes("edit/edit.json") ? "edit" : null;
   }
   return null;
 }
@@ -208,7 +210,9 @@ function Gate({ video, stage }: { video: VideoDetail; stage: string }) {
   return (
     <TurnCard title={<>Your call: review the {named(video, stage)}</>}>
       <p className="text-sm leading-relaxed text-muted">
-        Read the {named(video, stage)} below. Small fixes: edit the document directly. Bigger changes: write notes and the team redoes it. Approve to move on.
+        {stage === "rough cut"
+          ? "Watch the draft cut below. Write what to change and where (\"0:34 the count is unreadable\"), and the team redoes those parts. Approve to move on."
+          : `Read the ${named(video, stage)} below. Small fixes: edit the document directly. Bigger changes: write notes and the team redoes it. Approve to move on.`}
       </p>
       <textarea value={text} onChange={(event) => setText(event.target.value)} rows={2} placeholder="Notes for the team (optional when approving)" className="field mt-4 resize-y" />
       <div className="mt-3 flex flex-wrap justify-end gap-2">
@@ -262,7 +266,7 @@ function Now({ video }: { video: VideoDetail }) {
         action={
           <div className="flex gap-2">
             {/* Watching or recording while the team works is safe: the team only writes files, it never locks the pages. */}
-            {video.currentStage === "edit + graphics" || video.currentStage === "rough cut" ? (
+            {(video.currentStage === "edit + graphics" || video.currentStage === "rough cut") && video.files.includes("edit/edit.json") ? (
               <Button size="sm" onClick={() => navigate({ page: "edit", id: video.id })}>
                 Open editor
               </Button>
@@ -295,7 +299,7 @@ function Now({ video }: { video: VideoDetail }) {
     );
   } else if (video.questions) body = <Questions video={video} />;
   // The rough cut is a video, not a document: its review (player, notes, approve) lives on the Edit page, so the generic document gate would point at nothing.
-  else if (atGate && current?.name === "rough cut") {
+  else if (atGate && current?.name === "rough cut" && !onCutRoute(video)) {
     body = (
       <TurnCard
         title={
@@ -326,7 +330,7 @@ function Now({ video }: { video: VideoDetail }) {
         }
       />
     );
-  } else if (video.currentStage === "edit + graphics" || video.currentStage === "rough cut") {
+  } else if ((video.currentStage === "edit + graphics" || video.currentStage === "rough cut") && video.files.includes("edit/edit.json")) {
     body = (
       <TurnCard
         title={
@@ -354,7 +358,9 @@ function Now({ video }: { video: VideoDetail }) {
     body = (
       <StatusBar
         text={
-          recorded
+          !video.currentStage
+            ? "Every stage is done."
+            : recorded
             ? "Voice-over recorded. The next stage isn't built yet."
             : video.audio === "music"
               ? "Cue sheet approved. Nothing to record: shoot the footage the plan lists."
@@ -777,6 +783,8 @@ export function VideoPage({ id }: { id: string }) {
       </header>
       <Stepper video={video} onOpen={openStage} />
       <Now video={video} />
+      <Watch video={video} />
+      <FreeSpace video={video} />
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <Documents video={video} request={docRequest} />
         <SidePanel video={video} />

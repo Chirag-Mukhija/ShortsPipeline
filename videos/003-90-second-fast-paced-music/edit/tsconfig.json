@@ -1,0 +1,20 @@
+{
+  "extends": "../../../packages/video/tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@library/*": [
+        "./../../../packages/video/src/library/*"
+      ],
+      "@kit/*": [
+        "./../../../packages/video/src/kit/*"
+      ],
+      "*": [
+        "./../../../packages/video/node_modules/@types/*",
+        "./../../../packages/video/node_modules/*"
+      ]
+    }
+  },
+  "include": [
+    "scenes"
+  ]
+}

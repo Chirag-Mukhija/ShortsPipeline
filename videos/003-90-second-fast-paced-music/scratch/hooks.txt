@@ -1,0 +1,5 @@
+Partly missing. It still reads.
+This QR code has a hole in it. It still scans.
+A QR code can lose up to 30% of its codewords and still scan.
+Why does a broken QR code still work?
+Almost nobody knows why a QR code with a hole in it still reads.

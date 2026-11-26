@@ -13,3 +13,6 @@ export * from "./record";
 export * from "./edit";
 export * from "./mix";
 export * from "./cut";
+export * from "./package";
+export * from "./cleanup";
+export * from "./beats";

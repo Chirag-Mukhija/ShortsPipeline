@@ -1,0 +1,23 @@
+{
+  "title": "Why Broken QR Codes Still Work",
+  "description": "Why broken QR codes still work: error correction, the 1:1:3:1:1 finder ratio, and how many QR codes can exist.\n\nA 90-second music-only film. No voice, no one on camera: the type and the pictures carry it. A QR code with a piece missing can still be read, because the code carries extra data that rebuilds what was lost. The film follows that from 1994 to the count of every digit-only code that fits in the biggest size, which is at least 10^7,089 (version 40-L, digits only, a floor: letters, bytes, other sizes and other levels would add more).\n\n0:00 Partly missing, it still reads\n0:10 Where it started\n0:22 The rarest ratio\n0:35 How the code grew\n0:52 From 12 digits to 10^7,089 codes\n1:14 How a damaged code is rebuilt\n\nThe QR codes drawn in the film are illustrations. Larger sizes are plausible patterns, not readable codes.\n\nSources:\n- DENSO WAVE, History of QR Code: https://www.qrcode.com/en/history/\n- DENSO WAVE, QR Code development story: https://www.denso-wave.com/en/technology/vol1.html\n- DENSO WAVE, QR Code standardization: https://www.qrcode.com/en/about/standards.html\n- DENSO WAVE, Information capacity and versions: https://www.qrcode.com/en/about/version.html\n- DENSO WAVE, Error correction feature: https://www.qrcode.com/en/about/error_correction.html\n- DENSO WAVE, Micro QR: https://www.qrcode.com/en/codes/microqr.html\n- DENSO WAVE, rMQR: https://www.qrcode.com/en/codes/rmqr.html\n- DENSO WAVE, QR Code FAQ: https://www.qrcode.com/en/faq.html\n- DENSO WAVE, Patents: https://www.qrcode.com/en/patent.html\n- GS1 US, Guide to UPCs: https://www.gs1us.org/upcs-barcodes-prefixes/guide-to-upcs\n- Thonky, QR code character capacities: https://www.thonky.com/qr-code-tutorial/character-capacities\n- Thonky, module placement in the matrix: https://www.thonky.com/qr-code-tutorial/module-placement-matrix\n- Atoms in the visible universe, about 10^80: https://web.stanford.edu/~peastman/statmech/largenumbers.html\n- Atoms estimate range, 10^78 to 10^82: https://www.universetoday.com/36302/atoms-in-the-universe/\n- HyperPhysics, CD response to defects: https://hyperphysics.gsu.edu/hbase/Audio/cdplay4.html\n\nThe count: a version 40, level L code holds up to 7,089 digits. Each digit has 10 choices, so there are 10 x 10 x ... (7,089 times) = 10^7,089 different digit-only messages. \"QR Code\" is a registered trademark of DENSO WAVE.\n\nMusic:\nLaserpack Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0\nhttps://creativecommons.org/licenses/by/4.0/",
+  "tags": [
+    "qr code",
+    "qr codes",
+    "broken qr code",
+    "damaged qr code",
+    "why qr codes still work",
+    "qr code error correction",
+    "reed-solomon",
+    "how qr codes work",
+    "qr code history",
+    "denso wave",
+    "music only",
+    "kinetic typography"
+  ],
+  "categoryId": "28",
+  "privacy": "private",
+  "madeForKids": false,
+  "file": "renders/cut-final.mp4",
+  "thumbnail": "package/thumbnail.png"
+}

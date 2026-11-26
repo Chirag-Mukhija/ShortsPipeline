@@ -77,8 +77,8 @@
     "credit": "Wholesome Kevin MacLeod (incompetech.com)\r\nLicensed under Creative Commons: By Attribution 4.0\r\nhttps://creativecommons.org/licenses/by/4.0/"
   },
   "mix": {
-    "voiceDb": -17,
-    "musicDb": 0,
+    "voiceDb": 5,
+    "musicDb": -7,
     "duckDb": 8,
     "musicOn": true,
     "musicStart": 0,

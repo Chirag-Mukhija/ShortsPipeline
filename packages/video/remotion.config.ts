@@ -1,4 +1,4 @@
-// Remotion CLI settings for this package: GPU rendering through ANGLE, and the @library alias so per-video scene files in videos/NNN/edit/ can import the motion library.
+// Remotion CLI settings for this package: GPU rendering through ANGLE, and the @library and @kit aliases so per-video scene files in videos/NNN/edit/ can import the motion library and the kit.
 import path from "node:path";
 import { Config } from "@remotion/cli/config";
 
@@ -10,7 +10,7 @@ Config.overrideWebpackConfig((config) => ({
   ...config,
   resolve: {
     ...config.resolve,
-    alias: { ...(config.resolve?.alias as Record<string, string> | undefined), "@library": path.join(pkg, "src/library") },
+    alias: { ...(config.resolve?.alias as Record<string, string> | undefined), "@library": path.join(pkg, "src/library"), "@kit": path.join(pkg, "src/kit") },
     modules: [...(config.resolve?.modules ?? ["node_modules"]), path.join(pkg, "node_modules")],
   },
 }));

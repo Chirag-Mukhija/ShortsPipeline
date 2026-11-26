@@ -8,7 +8,7 @@ Goal: from a recorded voice and face cam, a watchable **draft cut** in minutes, 
 - **Timeline v2** (`packages/schema/src/cut.ts`, ✅ built with its checker `pnpm cut:check`): the video's style, the face cam, and **segments** `{ id, start, end, layout, visual?, media, move?, transitionIn }`. A segment's `visual` is either a kit template used as is, or **a scene written for this video, adapted from the templates it names in `basedOn`**. Templates are a base and inspiration, never a menu to fill (the creator's call, 2026-11-23).
   - Layouts: `face` (you, full frame), `full` (a template full frame), `split` (you on the left, a 1000×1080 template panel on the right), `overlay` (a template on top of you).
   - Segments are contiguous on the narration's timeline. Each segment's `cues` are filled automatically from `narration.json`, in seconds from the segment's start.
-- **Renderer** (`packages/video/src/cut/`):
+- **Renderer** (`packages/video/src/cut/`, ✅ built 2026-11-23; `pnpm cut:render <video>` renders `edit/cut.json`. Tested on video 001's Beats 1–2 and on a synthetic face cam; the real face-cam test, video 002, is waiting for the recording):
   - the face cam is the base layer, with punch-ins on chosen words
   - templates are placed by layout, with the creator's style tokens
   - transitions (cut, push, whip, mask, fade) come from the library core
@@ -17,10 +17,13 @@ Goal: from a recorded voice and face cam, a watchable **draft cut** in minutes, 
   - variety: the same template or move twice in a row, a mode held for more than about 15 s
   - the visual-mix ratio against the plan's targets (face 40–50%, graphics 30–40%, footage 20–30%)
   - `motion-qa` on the result
-- **Per-segment cache:** a hash of the segment's JSON, its template file and the style decides what re-renders; segments are joined like `assemble.mjs` does now.
+- **Per-segment cache:** a hash of the segment's JSON (its cues included), its template or scene file, its media, the style and the renderer decides what re-renders, plus the segment before it when the transition in shows it. Segments are joined like `assemble.mjs` does now.
+- **Where the plan lives:** `edit/cut.json`, so video 001's beat-based `edit.json` keeps working beside it. A plan may cover only the start of the narration (001's covers 0:00–1:54).
 - **Test:** you record about 1 minute with face cam; I hand-write its timeline (6–8 segments, 5+ templates).
 
 ## Step B: the planner (one Sonnet run per video)
+**✅ Built 2026-11-25, ahead of the face-cam test of Step A, because the creator wanted a music-only video first:** the `cut-planner` agent, the Cut playbook (`.claude/skills/studio/stages/cut.md`), music-only rendering (track, detected beats, the plan's own cues, its own palette), and timing checks in `cut:check`. Still open: footage slots on a Cut page, and a full video through it.
+
 **What you get:** the team writes that timeline for a whole video, cheaply.
 
 - **Kit menu card** (✅ `pnpm kit:catalog` → `data/library/kit/MENU.md`, about 1,200 tokens, plus `catalog.json` for details): what the planner reads about the kit.

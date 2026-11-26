@@ -1,0 +1,82 @@
+{
+  "version": 2,
+  "duration": 114.0,
+  "faceCam": false,
+  "style": "hand-drawn",
+  "segments": [
+    { "id": "s01-hook", "start": 0, "end": 8.0, "layout": "full", "visual": { "kind": "scene", "file": "scenes/cut/hook.tsx", "basedOn": ["title-card"], "mode": "text" }, "note": "Creator's Beat 1 note: context goes up and blurs out, the question pops word by word, 'learning' highlighted last." },
+    { "id": "s02-chain", "start": 8.0, "end": 17.5, "layout": "full", "transitionIn": "whip", "visual": { "kind": "template", "template": "timeline-path", "props": { "shape": "zigzag", "showProgress": false, "stops": [
+      { "kicker": "Link 1", "title": "Networking", "word": "networking", "icon": "globe" },
+      { "kicker": "Link 2", "title": "Custom protocol", "word": "protocol", "icon": "code" },
+      { "kicker": "Link 3", "title": "Claude Code", "word": "Code", "icon": "chip" },
+      { "kicker": "Link 4", "title": "Backend", "word": "back", "icon": "gear" },
+      { "kicker": "Link 5", "title": "System design", "word": "system", "icon": "bulb" },
+      { "kicker": "Link 6", "title": "AWS", "word": "AWS", "icon": "rocket" },
+      { "kicker": "Link 7", "title": "DevOps", "word": "DevOps", "icon": "flag" } ] } } },
+    { "id": "s03-agent", "start": 17.5, "end": 25.1, "layout": "full", "transitionIn": "push", "visual": { "kind": "template", "template": "code-walk", "props": { "language": "python", "file": "protocol.py", "reveal": "type", "revealWord": "honestly",
+      "code": "def send(sock, packet):\n    header = len(packet).to_bytes(4, \"big\")\n    sock.sendall(header + packet)\n\ndef receive(sock):\n    size = int.from_bytes(sock.recv(4), \"big\")\n    return sock.recv(size)",
+      "focus": [ { "lines": [1, 3], "note": "Agent-written", "word": "agent" } ] } } },
+    { "id": "s04-question", "start": 25.1, "end": 29.92, "layout": "full", "transitionIn": "whip", "visual": { "kind": "template", "template": "title-card", "props": { "lines": ["AI can write code.", "What should I learn?"], "emphasis": "learn", "mark": "underline", "entrance": "rise", "align": "left", "wordCues": true } } },
+    { "id": "s05-roadmap", "start": 29.92, "end": 39.9, "layout": "full", "transitionIn": "push", "visual": { "kind": "template", "template": "list-tick", "props": { "title": "In this video", "items": [
+      { "text": "Walk through my chain", "word": "walk" },
+      { "text": "What the research says", "word": "research" },
+      { "text": "What I'm doing about it", "word": "doing" } ], "doneThrough": -1, "current": 2, "showCounter": false } } },
+    { "id": "s06-networking", "start": 39.9, "end": 50.8, "layout": "full", "transitionIn": "whip", "visual": { "kind": "template", "template": "character-scene", "props": {
+      "caption": "How it actually went", "captionWord": "actually",
+      "characters": [ { "id": "me", "name": "Me", "look": "person", "colour": "accent2", "x": 0.35, "pose": "stand", "expression": "neutral" } ],
+      "objects": [ { "id": "book", "kind": "book", "label": "Networking", "heldBy": "me", "appearWord": "studying" } ],
+      "beats": [
+        { "word": "studying", "who": "me", "pose": "sit", "expression": "neutral" },
+        { "word": "away", "who": "me", "pose": "think", "expression": "worried", "say": "My mind wanders…", "bubble": "think" },
+        { "word": "build", "who": "me", "pose": "point", "expression": "happy", "say": "Let's build something", "bubble": "say" },
+        { "word": "protocol", "who": "me", "pose": "celebrate", "expression": "proud", "say": "A custom protocol!", "bubble": "say" } ] } } },
+    { "id": "s07-claude", "start": 50.8, "end": 58.4, "layout": "full", "transitionIn": "push", "visual": { "kind": "template", "template": "ui-morph", "props": { "cursor": true, "states": [
+      { "kind": "card", "text": "Claude Code use case", "word": "YouTube" },
+      { "kind": "button", "text": "Buy it", "word": "bought" },
+      { "kind": "tabs", "text": "Juggling", "items": ["Protocol", "Claude"], "word": "manage" },
+      { "kind": "toast", "text": "Both at once", "word": "once" } ] } } },
+    { "id": "s08-fade", "start": 58.4, "end": 67.0, "layout": "full", "transitionIn": "whip", "visual": { "kind": "template", "template": "compare-split", "props": {
+      "left": { "title": "Custom protocol", "tone": "neutral", "word": "explored", "points": [ { "text": "Halfway built" } ] },
+      "right": { "title": "System design", "tone": "good", "word": "system", "points": [ { "text": "Where backend led me" } ] },
+      "verdict": "The protocol faded out", "verdictSide": "right", "verdictWord": "faded" } } },
+    { "id": "s09-aws", "start": 67.0, "end": 73.4, "layout": "full", "transitionIn": "push", "visual": { "kind": "template", "template": "flow-diagram", "props": {
+      "caption": "1 to 1 million users", "captionWord": "million",
+      "nodes": [
+        { "id": "users", "label": "Users", "kind": "user", "col": 0, "row": 1 },
+        { "id": "lb", "label": "Load balancer", "kind": "lb", "col": 1, "row": 1 },
+        { "id": "api", "label": "API", "kind": "service", "col": 2, "row": 1 },
+        { "id": "cache", "label": "Cache", "kind": "cache", "col": 3, "row": 0 },
+        { "id": "db", "label": "Database", "kind": "db", "col": 3, "row": 2 } ],
+      "edges": [ { "from": "users", "to": "lb" }, { "from": "lb", "to": "api" }, { "from": "api", "to": "cache" }, { "from": "api", "to": "db" } ],
+      "steps": [
+        { "action": "flow", "target": "users>lb", "word": "users", "count": 3 },
+        { "action": "flow", "target": "lb>api", "word": "scalable", "count": 3 },
+        { "action": "flow", "target": "api>cache", "word": "using", "count": 2 },
+        { "action": "scale", "target": "api", "word": "AWS", "count": 3 } ] } } },
+    { "id": "s10-devops", "start": 73.4, "end": 78.1, "layout": "full", "transitionIn": "whip", "visual": { "kind": "template", "template": "card-duel", "props": {
+      "left": { "name": "DevOps", "icon": "bolt", "power": 7, "health": 7, "ability": "The new pull", "word": "leaning" },
+      "right": { "name": "System design", "icon": "book", "power": 5, "health": 4, "ability": "Fading out", "word": "system" },
+      "versus": "VS", "hits": [], "verdict": { "text": "DevOps, for now", "side": "left", "word": "fading" } } } },
+    { "id": "s11-pattern", "start": 78.1, "end": 84.7, "layout": "full", "transitionIn": "fade", "visual": { "kind": "template", "template": "quote-card", "props": {
+      "quote": "Every switch started the same way. A video, or a new use case. Nothing planned.", "emphasis": "Nothing planned", "by": "Me", "detail": "Looking back at my chain", "wordCues": true, "markWord": "planned" } } },
+    { "id": "s12-admit", "start": 84.7, "end": 95.9, "layout": "full", "transitionIn": "whip", "visual": { "kind": "template", "template": "character-scene", "props": {
+      "caption": "The part I have to admit", "captionWord": "admit",
+      "characters": [
+        { "id": "me", "name": "Me", "look": "person", "colour": "accent2", "x": 0.26, "pose": "stand", "expression": "neutral" },
+        { "id": "agent", "name": "Coding agent", "look": "server", "colour": "accent", "x": 0.72, "expression": "neutral" } ],
+      "objects": [ { "id": "laptop", "kind": "laptop", "label": "My project", "heldBy": "me", "appearWord": "finish" } ],
+      "beats": [
+        { "word": "finish", "who": "me", "pose": "tap", "expression": "neutral", "say": "Just finish this one", "bubble": "think" },
+        { "word": "mostly", "who": "me", "give": { "object": "laptop", "to": "agent" } },
+        { "word": "Claude", "who": "agent", "pose": "wave", "expression": "happy", "say": "On it!" },
+        { "word": "finish", "who": "me", "pose": "celebrate", "expression": "proud" } ] } } },
+    { "id": "s13-running", "start": 95.9, "end": 101.0, "layout": "full", "transitionIn": "cut", "visual": { "kind": "template", "template": "title-card", "props": { "lines": ["I was running", "from the hard work"], "emphasis": "hard", "mark": "underline", "entrance": "scale", "align": "left", "wordCues": true } } },
+    { "id": "s14-counts", "start": 101.0, "end": 109.7, "layout": "full", "transitionIn": "push", "visual": { "kind": "template", "template": "compare-split", "props": {
+      "left": { "title": "Finished", "tone": "neutral", "word": "finished", "points": [ { "text": "Mostly by an agent" } ] },
+      "right": { "title": "Learned", "tone": "bad", "word": "honestly", "points": [ { "text": "Not sure it counts" } ] },
+      "verdict": "Not the same thing", "verdictWord": "sure" } } },
+    { "id": "s15-carried", "start": 109.7, "end": 114.0, "layout": "full", "transitionIn": "fade", "visual": { "kind": "template", "template": "parts-combine", "props": {
+      "parts": [ { "label": "Networking", "word": "Looking" }, { "label": "Backend", "word": "back" }, { "label": "System design", "word": "some" } ],
+      "combineWord": "carried", "name": "Some of it carried over", "nameWord": "topics" } } }
+  ]
+}

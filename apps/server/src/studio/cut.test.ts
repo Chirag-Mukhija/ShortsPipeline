@@ -1,5 +1,5 @@
-// Tests the Cut plan checker: coverage, visuals and props, media, variety and the visual mix, on small hand-made plans.
-import { checkCut, cutMix, type CutContext, type CutTemplateInfo } from "@clipforge/schema";
+// Tests the Cut plan checker (coverage, visuals and props, media, variety, the visual mix) and the resolver that turns a plan into frames and cues, on small hand-made plans.
+import { checkCut, cutMix, CutSchema, resolveCut, type CutContext, type CutTemplateInfo } from "@clipforge/schema";
 import { describe, expect, it } from "vitest";
 
 const ctx: CutContext = {
@@ -88,5 +88,102 @@ describe("checkCut", () => {
     const report = checkCut({ version: 1, segments: [] }, ctx);
     expect(report.ok).toBe(false);
     expect(report.issues[0]!.rule).toBe("shape");
+  });
+
+  it("doesn't flag one long layout on a video without face cam", () => {
+    const plan = { ...structuredClone(good), faceCam: false, segments: good.segments.map((seg) => ({ ...seg, layout: "full", visual: seg.visual ?? { kind: "template", template: "title-card", props: {} } })) };
+    expect(checkCut(plan, ctx).issues.some((i) => i.message.includes("straight"))).toBe(false);
+  });
+});
+
+describe("resolveCut", () => {
+  const words = [
+    { text: "Hello", start: 0.2, end: 0.5 },
+    { text: "there.", start: 3.98, end: 4.3 },
+    { text: "Numbers", start: 13.4, end: 13.9 },
+  ];
+
+  it("gives neighbours a shared boundary frame and covers every frame once", () => {
+    const plan = resolveCut(CutSchema.parse({ ...good, segments: good.segments.map((seg, i) => (i === 2 ? { ...seg, start: 13.017 } : seg)) }), words, 30);
+    expect(plan.frames).toBe(900);
+    expect(plan.segments[0]!.from).toBe(0);
+    plan.segments.forEach((seg, i) => {
+      const next = plan.segments[i + 1];
+      if (next) expect(next.from).toBe(seg.to);
+    });
+    expect(plan.segments.at(-1)!.to).toBe(900);
+    expect(plan.segments[2]!.from).toBe(391);
+  });
+
+  it("fills each segment's cues in seconds from its own first frame", () => {
+    const plan = resolveCut(CutSchema.parse(good), words, 30);
+    // A word spoken a hair before its segment's boundary frame still belongs to the segment it starts.
+    expect(plan.segments[1]!.cues.map((c) => c.word)).toEqual(["there."]);
+    expect(plan.segments[1]!.cues[0]!.at).toBeCloseTo(-0.02, 3);
+    expect(plan.segments[2]!.cues[0]).toEqual({ at: 0.4, end: 0.9, word: "Numbers" });
+    expect(plan.segments[0]!.cues.map((c) => c.word)).toEqual(["Hello"]);
+  });
+});
+
+describe("music-only plans", () => {
+  const music = {
+    version: 2,
+    duration: 17,
+    audio: "music",
+    faceCam: false,
+    style: "night",
+    music: { trackId: "t1", title: "T", credit: "T by X (CC BY 4.0)" },
+    segments: [
+      { id: "a", start: 0, end: 5, layout: "full", visual: { kind: "template", template: "stat-punch", props: { value: 1, label: "of codes", landWord: "land" } }, cues: [{ at: 1, word: "land" }] },
+      { id: "b", start: 5, end: 10, layout: "full", visual: { kind: "template", template: "title-card", props: { lines: ["One", "two"] } }, cues: [{ at: 0.5, word: "One" }] },
+      { id: "c", start: 10, end: 17, layout: "full", visual: { kind: "template", template: "stat-punch", props: { value: 2 } } },
+    ],
+  };
+  const on: CutContext = { ...ctx, beats: [0, 5, 10, 15], styles: { night: { bg: "#0c0d10", surface: "#16181d", ink: "#f2f2f0", muted: "#8a8f98", accent: "#7cf29c" } }, creditOf: (t) => (t === "t1" ? "T by X\n(CC BY 4.0)" : null) };
+  const found = (plan: unknown) => checkCut(plan, on).issues.map((i) => `${i.level} ${i.rule}`);
+
+  it("accepts all-drawn graphics and needs no footage", () => {
+    expect(checkCut(music, on).issues).toEqual([]);
+  });
+
+  it("needs a track and a style that exist, and no face", () => {
+    expect(found({ ...music, music: undefined })).toContain("red music");
+    expect(found({ ...music, music: { ...music.music, trackId: "nope" } })).toContain("red music");
+    expect(found({ ...music, music: { ...music.music, credit: "CC BY 4.0" } })).toContain("red music");
+    expect(found({ ...music, faceCam: true })).toContain("red music");
+    expect(found({ ...music, style: "nope" })).toContain("red style");
+    expect(found({ ...music, look: { ink: "#222222" } })).toContain("red style");
+    expect(found({ ...music, look: { ink: "white" } })).toContain("red shape");
+    expect(found({ ...music, look: { bg: "#101820", accent: "#ffb000" } })).toEqual([]);
+  });
+
+  it("flags cuts off the beat, cues that don't exist, rushed text and a slideshow", () => {
+    const off = structuredClone(music);
+    off.segments[0]!.end = 5.2;
+    off.segments[1]!.start = 5.2;
+    expect(found(off)).toContain("yellow beat");
+    const lost = structuredClone(music);
+    (lost.segments[0]!.visual.props as { landWord: string }).landWord = "elsewhere";
+    expect(found(lost)).toContain("yellow cue");
+    const late = structuredClone(music);
+    late.segments[0]!.cues![0]!.at = 9;
+    expect(found(late)).toContain("red cue");
+    const wordy = structuredClone(music);
+    (wordy.segments[0]!.visual.props as { label: string }).label = "a very long label that nobody could possibly read in the time it stays on the screen here";
+    expect(found(wordy)).toContain("yellow reading");
+    const slides = structuredClone(music);
+    slides.segments[2]!.visual = { kind: "template", template: "title-card", props: { lines: ["x"] } } as never;
+    expect(checkCut(slides, on).issues.some((i) => /slideshow/.test(i.message))).toBe(true);
+  });
+
+  it("uses the plan's own cues instead of narration", () => {
+    const plan = resolveCut(CutSchema.parse(music), [{ text: "spoken", start: 1, end: 2 }], 30);
+    expect(plan.segments[0]!.cues).toEqual([{ at: 1, end: 1.3, word: "land" }]);
+  });
+
+  it("checks a voice plan's words too, once they're known", () => {
+    const voice = { ...music, audio: "voice", music: undefined, segments: music.segments.map(({ cues: _cues, ...seg }) => seg) };
+    expect(checkCut(voice, { ...on, words: [{ text: "land,", start: 1, end: 1.4 }] }).issues.some((i) => i.rule === "cue")).toBe(false);
+    expect(checkCut(voice, { ...on, words: [{ text: "other", start: 1, end: 1.4 }] }).issues.some((i) => i.rule === "cue")).toBe(true);
   });
 });

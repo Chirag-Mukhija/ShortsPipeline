@@ -470,7 +470,10 @@ const ChartBars: FC<{ props: Props; style: Style; W: number; H: number; duration
   // Camera: born a touch close and settles back, then on the highlight pushes in around the insight; a very slow drift keeps holds alive.
   const arrive = enter(calm, frame, fps, 0, 1.1);
   const C = { x: (plotL + plotR) / 2, y: (plotTop + plotBottom) / 2 };
-  const F = { x: (focusRect.l + focusRect.r) / 2, y: (focusRect.t + focusRect.b) / 2 };
+  // The push grows around F; for a short bar that's low in the frame, so without a ceiling the tallest bar's value would ride up into the title.
+  const fullPush = (1 + PUSH) * 1.02;
+  const highestF = props.title ? plotTop + (plotTop - titleBottom - 8) / (fullPush - 1) : Infinity;
+  const F = { x: (focusRect.l + focusRect.r) / 2, y: Math.min((focusRect.t + focusRect.b) / 2, highestF) };
   const drift = (at: number) => 1 + 0.004 * Math.max(0, at - 1);
   const cam = (1.04 - 0.04 * arrive) * (1 + PUSH * push) * drift(t);
   const O = { x: lerp(C.x, F.x, push), y: lerp(C.y, F.y, push) };

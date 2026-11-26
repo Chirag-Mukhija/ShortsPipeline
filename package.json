@@ -17,7 +17,15 @@
     "test": "pnpm -r test",
     "setup:denoise": "sh scripts/setup-denoise.sh",
     "kit:catalog": "apps/server/node_modules/.bin/tsx scripts/kit-catalog.ts",
-    "cut:check": "apps/server/node_modules/.bin/tsx scripts/check-cut.ts"
+    "kit:build": "caffeinate -i apps/server/node_modules/.bin/tsx scripts/kit-queue.ts build",
+    "kit:stop": "apps/server/node_modules/.bin/tsx scripts/kit-queue.ts stop",
+    "kit:status": "apps/server/node_modules/.bin/tsx scripts/kit-queue.ts status",
+    "cut:check": "apps/server/node_modules/.bin/tsx scripts/check-cut.ts",
+    "cut:render": "apps/server/node_modules/.bin/tsx scripts/cut-render.ts",
+    "music:beats": "apps/server/node_modules/.bin/tsx scripts/music-beats.ts",
+    "package:check": "apps/server/node_modules/.bin/tsx scripts/package-check.ts",
+    "thumb:render": "apps/server/node_modules/.bin/tsx scripts/thumb-render.ts",
+    "upload": "apps/server/node_modules/.bin/tsx scripts/upload.ts"
   },
   "devDependencies": {
     "typescript": "^7.0.2"

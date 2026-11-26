@@ -1,12 +1,13 @@
-// HTTP API for the studio website: videos and their artifacts, creator decisions, agent runs, the inbox, voice practice and the record page.
+// HTTP API for the studio website: videos and their artifacts, creator decisions, agent runs, the inbox, voice practice, the record page and freeing space on a finished video.
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { Hono } from "hono";
 import { z } from "zod";
-import { INBOX_INTENTS, VIDEO_AUDIO, VIDEO_MODES, type VideoDetail } from "@clipforge/schema";
+import { CLEANUP_GROUPS, INBOX_INTENTS, VIDEO_AUDIO, VIDEO_MODES, type VideoDetail } from "@clipforge/schema";
 import { StepError } from "../pipeline/errors";
 import { emit } from "../pipeline/events";
+import { cleanupPlan, runCleanup } from "../studio/cleanup";
 import { enqueue, isRunning, listRuns, refreshUsage, resumeNow, runnerStatus, stop } from "../studio/runner";
 import { appendChunk, appendVideoChunk, deleteTake, exportNarration, finishTake, listen, recordState, retranscribe, saveCuts, setCleanup, startTake } from "../studio/record";
 import {
@@ -161,6 +162,17 @@ studio.post("/studio/videos/:id/inbox", async (c) => {
   const saved = addInboxItem(id, file.name, Buffer.from(await file.arrayBuffer()), String(form.note ?? ""), (INBOX_INTENTS as readonly string[]).includes(intent) ? intent : "other");
   void deriveInboxMedia(path.join(videoDir(id), "inbox"), saved).catch((error: Error) => console.warn(`inbox media for ${saved}: ${error.message}`));
   return c.json(detail(id));
+});
+
+studio.get("/studio/videos/:id/cleanup", async (c) => c.json(await cleanupPlan(c.req.param("id"))));
+
+// Deletes for good: the groups ticked, the signature of the list the creator saw, and their word that the final is safe.
+studio.post("/studio/videos/:id/cleanup", async (c) => {
+  const input = await body(c, z.object({ groups: z.array(z.enum(CLEANUP_GROUPS)).min(1, "Nothing is ticked"), signature: z.string().min(1), finalIsSafe: z.literal(true, "Confirm the final video is safe first") }));
+  const id = c.req.param("id");
+  const result = await runCleanup(id, input.groups, input.signature);
+  emit({ type: "studio", videoId: id });
+  return c.json(result);
 });
 
 studio.post("/studio/transcribe", async (c) => {

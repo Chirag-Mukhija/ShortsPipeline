@@ -8,6 +8,9 @@
       "*": [
         "./../../../packages/video/node_modules/@types/*",
         "./../../../packages/video/node_modules/*"
+      ],
+      "@kit/*": [
+        "./../../../packages/video/src/kit/*"
       ]
     }
   },

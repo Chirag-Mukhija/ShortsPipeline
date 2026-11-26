@@ -31,6 +31,8 @@ Read the mode from the prompt's `[studio-run ...]` tag, or from the `Mode:` line
   - log it in status.md as `- <date> <stage>: DECIDED BY SHOWRUNNER (autonomous): <decision>. Why: <one line>`
   - keep going without stopping
 
+  - **except the package gate:** prepare the package, set `package + upload` to `waiting for creator` and stop. Never log an approval in the creator's name, and never upload.
+
   The creator can overrule any of these later; their word always wins.
 
 ## Voice-over or music only
@@ -46,9 +48,9 @@ Read only the playbook for the stage you are running:
 | plan | `stages/plan.md` | plan.md + package.md, **creator gate** |
 | script | `stages/script.md` | script.md + factcheck.md, **creator gate** (a cue sheet on a music-only video) |
 | record | the creator, on the website's Record page | no agent work: tell the creator to open the Record page (teleprompter, takes, cut by text, export). It writes `record/narration.wav`, `narration.json` (word timings), `narration.srt` and `transcript.md`, and marks the stage done. `transcript.md` is what was actually said, so it wins over `script.md` wherever they differ. On a music-only video the state is `skipped` and nothing is recorded |
-| edit + graphics | `stages/edit.md` | edit/edit.json, every beat built by the motion designer and checked by its stills, renders/preview.mp4 assembled |
-| rough cut | `stages/edit.md` ("Rough-cut notes") | the creator reviews on the website's Edit page: approves, or pins notes that send single beats back (**creator gate**) |
-| package, upload | not built yet | tell the creator this stage is coming in a later build step |
+| edit + graphics | `stages/cut.md` (new videos, and always music-only) or `stages/edit.md` (videos that already have edit/edit.json) | edit/cut.json planned, checked and rendered to renders/cut-preview.mp4 |
+| rough cut | `stages/cut.md`, or `stages/edit.md` ("Rough-cut notes") | the creator watches it on the video's page (Edit page for beat edits) and approves or gives notes (**creator gate**) |
+| package + upload | `stages/package.md` | final export, package/upload.json (packager), package/thumbnail.png, `pnpm package:check`; **creator gate**, then a private upload the creator approves |
 
 ## Every stage, every time
 - **Before:** read `status.md`. The creator's decisions there override everything else, including this playbook.

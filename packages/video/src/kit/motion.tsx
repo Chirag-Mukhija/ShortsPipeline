@@ -13,6 +13,8 @@ export const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 
 // 0→1 starting at `at` seconds, shaped by the style's temperament. A pure function of the frame, so any frame renders on its own.
 export const enter = (style: Style, frame: number, fps: number, at: number, seconds = 0.6) => {
+  // A moment that never comes (an optional part left out) is Infinity; interpolate and spring only take finite times.
+  if (!Number.isFinite(at)) return at > 0 ? 0 : 1;
   const start = at * fps;
   if (style.motion === "snappy") return spring({ frame: frame - start, fps, config: { damping: 16, stiffness: 140, mass: 0.9 }, durationInFrames: Math.round(seconds * fps) });
   const easing = style.motion === "hand" ? Easing.out(Easing.back(1.6)) : Easing.inOut(Easing.cubic);

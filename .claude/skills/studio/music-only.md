@@ -73,5 +73,5 @@ Checks every text card. It also checks every visual that states or implies a fac
 - The title promises the experience the visuals deliver. No voice-over means no "I explain", "I'll show you how" or "watch me talk through".
 - The thumbnail shows the creator's face only if the plan puts them on camera. Otherwise the strongest style frame carries it: its palette, its one image, at most three words.
 
-### edit (not built yet)
-The cut follows the music: cue durations snap to the chosen track's beats and bars. The cue sheet is the edit's blueprint.
+### edit
+Always the Cut route (`stages/cut.md`); the beat route can't render without a voice. The cue sheet is the blueprint. The cut-planner picks the track from the plan's music brief, so a cue's duration may move to the nearest beat, but never below the hold rule. There is no narration, so the plan times its own cues. If the creator captures nothing, every shot is drawn: then the cue sheet uses `GRAPHIC` cues only, and the plan's "What the creator captures" says "nothing".

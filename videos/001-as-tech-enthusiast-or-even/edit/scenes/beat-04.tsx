@@ -753,7 +753,8 @@ const DisclosureNote: FC = () => {
 
 const Beat04: FC = () => {
   const { t } = useTime();
-  if (t < START || t >= END) return null;
+  // Half a frame of slack: the beat clip's first frame is START rounded to the frame grid, which can land just before START.
+  if (t < START - 1 / 60 || t >= END) return null;
   // Small camera kicks on the two slaps (sticky note, stamp), outside the rig so they never fight the shot list.
   const kick = (at: number) => (t >= at && t < at + 0.5 ? Math.exp(-(t - at) * 12) * Math.sin((t - at) * 70) * 7 : 0);
   const k = kick(189.22) + kick(249.42);

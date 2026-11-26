@@ -1,0 +1,26 @@
+{
+  "title": "AI Can Code. So What Should I Actually Learn?",
+  "description": "If AI can code, what should you actually learn? I kept switching tech, AI wrote most of what I finished, and this is my honest answer so far.\n\nI went from networking to a custom protocol, Claude Code, backend, system design, AWS and DevOps in a few months. Most of what I finished along the way, a coding agent wrote. So in this video I walk through the chain, look at what the research says, and share what I'm doing about it. I'm still sorting it out myself, and nothing here is guaranteed.\n\nChapters\n0:00 If AI writes the code, what am I learning?\n0:40 My chain, honestly\n1:54 Is switching itself bad?\n2:55 The real cost: not learning\n4:11 The one link I never dropped: DSA\n4:53 Learn skills, not tool names\n6:11 Three rules for learning with AI\n7:24 My answer\n\nSources the video cites\n- Shen and Tamkin, AI assistance and coding skills, Anthropic, 2026: https://www.anthropic.com/research/AI-assistance-coding-skills\n- Lazear, Entrepreneurship (NBER Working Paper 9109, 2002): https://www.nber.org/papers/w9109\n- Macnamara, Hambrick and Oswald, Deliberate Practice and Performance in Music, Games, Sports, Education, and Professions, Psychological Science, 2014 (press release): https://www.sciencedaily.com/releases/2014/07/140716123835.htm\n- Dunlosky et al., Improving Students' Learning With Effective Learning Techniques, 2013 (APS summary): https://www.psychologicalscience.org/news/releases/which-study-strategies-make-the-grade.html\n- Stack Overflow blog, Domain expertise still wanted: the latest trends in AI, 2026-03-16: https://stackoverflow.blog/2026/03/16/domain-expertise-still-wanted-the-latest-trends-in-ai/\n- Masicampo and Baumeister, Consider it done! Plan making can eliminate the cognitive effects of unfulfilled goals, 2011: https://pubmed.ncbi.nlm.nih.gov/21688924/\n\nDisclosure: the Trio study was made by Anthropic, which also makes Claude. I use Claude Code. Its assistant was a sidebar chat, not an agent like Claude Code, and the study can't prove that how people used AI caused the difference. The DSA bet and the one year on one thing idea are my own judgment, not findings.\n\nMusic: Wholesome Kevin MacLeod (incompetech.com) / Licensed under Creative Commons: By Attribution 4.0 / https://creativecommons.org/licenses/by/4.0/\n\nWhere are you on your own chain? Tell me in the comments.",
+  "tags": [
+    "learn to code with AI",
+    "what to learn in the AI era",
+    "AI can code what should I learn",
+    "learning to code with AI",
+    "Claude Code",
+    "self taught developer",
+    "early career developer",
+    "computer science student",
+    "DSA",
+    "system design",
+    "DevOps",
+    "stop switching tech",
+    "how to learn programming",
+    "active recall",
+    "AI and coding skills"
+  ],
+  "categoryId": "27",
+  "privacy": "private",
+  "madeForKids": false,
+  "file": "renders/final.mp4",
+  "thumbnail": "package/thumbnail.png"
+}

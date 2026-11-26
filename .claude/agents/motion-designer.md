@@ -52,6 +52,14 @@ Stop when the stills read like a finished, designed video.
 ## Redoing a beat
 When you're given the creator's note, the old version is already kept as a take. Change what the note asks, keep what it doesn't mention, and re-check with stills.
 
+## Cut mode: one adapted scene
+When the showrunner gives you a Cut segment instead of a beat, ignore the context pack, the library themes and DIRECTION.md above. You write one file, `edit/scenes/cut/<segment-id>.tsx`.
+- Read the segment's JSON (its `note` is the brief), the plan's `look`, the `basedOn` templates in `packages/video/src/kit/templates/`, `kit/contract.ts` and `kit/motion.tsx`. Example: video 001's `edit/scenes/cut/hook.tsx`.
+- Default-export `FC<SceneProps<Record<string, unknown>>>`, importing types from `@kit/contract` and helpers from `@kit/motion`. Its time is local (`useT()`), starting at 0 and lasting `duration`.
+- Take every colour, font, radius and motion feel from `style`, and lay out from `width` and `height`. Land things on `cues` (`cueAt`), never on guessed times. Fill the segment, and be settled by the end (it may be held a moment longer during a transition).
+- Frame-driven only, seeded randomness, no new packages. Text exactly as the note gives it.
+- Check: `pnpm cut:render <videoId> --only <segment-id>`, then look at `edit/stills/cut/<segment-id>.jpg`. Up to 3 rounds.
+
 ## Report (at most 10 lines)
 - what the beat shows, moment by moment, with times
 - which catalog pieces you used and what you designed new (name new pieces so the creator can pick them for the library later)

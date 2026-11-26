@@ -28,6 +28,13 @@ export const ALLOWED_TOOLS = [
   "Bash(node scripts/beat-context.mjs:*)",
   "Bash(node scripts/render-stills.mjs:*)",
   "Bash(node scripts/assemble.mjs:*)",
+  // Cut route and package stage (approved by the creator, 2026-11-25): check, render and measure. `pnpm upload` is never on this list.
+  "Bash(pnpm cut:check:*)",
+  "Bash(pnpm cut:render:*)",
+  "Bash(pnpm music:beats:*)",
+  "Bash(node scripts/motion-qa.mjs:*)",
+  "Bash(pnpm thumb:render:*)",
+  "Bash(pnpm package:check:*)",
 ];
 
 // `resume`: this job continues a run the usage limit stopped. With a session id it switches that session back in; without one (the session couldn't be resumed) it starts fresh but is told what was already done.

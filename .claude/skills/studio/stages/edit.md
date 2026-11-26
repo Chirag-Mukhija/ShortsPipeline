@@ -4,6 +4,10 @@ Goal: turn the recorded narration (or, on a music-only video, the approved cue s
 
 **Read `packages/video/src/library/DIRECTION.md` first.** It holds the cinematography rules above every theme (one world with a camera, shot sizes, motivated transitions, living surfaces, rhythm), and every shot plan and beat must follow it. The plan and its reasons are in `docs/EDIT-STAGE-PLAN.md`. The motion library rules are in `packages/video/src/library/README.md`. The quality bar is `packages/video/src/oneshot/Beats12.tsx` (video 001, Beats 1–2), which the creator scored top on every point.
 
+## Which route
+- **Cut route (the default for every new video, and always for music-only): follow `cut.md` and stop reading here.** It plans the whole video on templates with one Sonnet run.
+- **Beat route (the rest of this file):** hand-coded Opus scenes, about 1,900 output tokens per second of video. Only for a video that already has `edit/edit.json`, or when a creator decision in `status.md` asks for hand-coded beats in so many words. Never choose it yourself, in any mode. It can't render a music-only video.
+
 ## Tools you may run
 - `node scripts/beat-context.mjs <videoId> <beatId>`: writes the designer's context pack to `edit/context/<beat>.md`.
 - `node scripts/render-stills.mjs <videoId> <beatId> [--at t1,t2]`: typechecks the scenes and renders stills plus a contact sheet into `edit/stills/<beat>/`.

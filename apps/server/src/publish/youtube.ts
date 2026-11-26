@@ -1,4 +1,4 @@
-// YouTube Data API: OAuth consent, refresh-token storage and resumable upload of the finished short.
+// YouTube Data API: OAuth consent, refresh-token storage, resumable upload of a finished short or long-form video, and setting its custom thumbnail.
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { env, paths, publicOrigin } from "../config";
@@ -82,7 +82,13 @@ export async function uploadToYoutube(options: {
   title: string;
   description: string;
   tags: string[];
+  categoryId?: string;
+  // Overrides YOUTUBE_PRIVACY; the studio's long-form uploads always pass "private".
+  privacy?: "private" | "unlisted" | "public";
+  // Long-form videos get a watch URL; the Shorts pipeline keeps its shorts URL.
+  short?: boolean;
 }): Promise<{ videoId: string; url: string; privacy: string }> {
+  const privacy = options.privacy ?? env.YOUTUBE_PRIVACY;
   const token = await accessToken();
   const size = statSync(options.file).size;
   const init = await fetch("https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status", {
@@ -98,9 +104,9 @@ export async function uploadToYoutube(options: {
         title: clean(options.title).slice(0, 100),
         description: clean(options.description).slice(0, 5000),
         tags: fitTags(options.tags),
-        categoryId: "28",
+        categoryId: options.categoryId ?? "28",
       },
-      status: { privacyStatus: env.YOUTUBE_PRIVACY, selfDeclaredMadeForKids: false },
+      status: { privacyStatus: privacy, selfDeclaredMadeForKids: false },
     }),
   });
   const location = init.headers.get("location");
@@ -114,7 +120,19 @@ export async function uploadToYoutube(options: {
   if (!upload.ok || !result.id) throw new Error(`YouTube upload failed (${upload.status}): ${result.error?.message ?? "unknown error"}`);
   return {
     videoId: result.id,
-    url: `https://youtube.com/shorts/${result.id}`,
-    privacy: result.status?.privacyStatus ?? env.YOUTUBE_PRIVACY,
+    url: options.short === false ? `https://youtu.be/${result.id}` : `https://youtube.com/shorts/${result.id}`,
+    privacy: result.status?.privacyStatus ?? privacy,
   };
+}
+
+// Custom thumbnails need a channel verified for them (phone verification in YouTube Studio); YouTube answers 403 otherwise.
+export async function setYoutubeThumbnail(videoId: string, file: string): Promise<void> {
+  const token = await accessToken();
+  const type = file.endsWith(".png") ? "image/png" : "image/jpeg";
+  const response = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${encodeURIComponent(videoId)}&uploadType=media`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}`, "content-type": type },
+    body: readFileSync(file),
+  });
+  if (!response.ok) throw new Error(`YouTube thumbnail failed (${response.status}): ${await response.text()}`);
 }

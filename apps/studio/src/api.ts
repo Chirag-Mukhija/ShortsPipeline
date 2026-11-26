@@ -1,6 +1,9 @@
 // Typed client for the ClipForge server API: the studio (videos, runs, inbox, voice, recording, login) and the older Shorts pipeline.
 import type {
   Cleanup,
+  CleanupGroupId,
+  CleanupPlan,
+  CleanupResult,
   CutReason,
   EditMix,
   EditNote,
@@ -111,6 +114,8 @@ export const studio = {
     return response.text();
   },
   saveFile: (id: string, path: string, content: string) => request<VideoDetail>("PUT", `${video(id)}/file`, { path, content }),
+  cleanupPlan: (id: string) => request<CleanupPlan>("GET", `${video(id)}/cleanup`),
+  cleanup: (id: string, groups: CleanupGroupId[], signature: string) => request<CleanupResult>("POST", `${video(id)}/cleanup`, { groups, signature, finalIsSafe: true }),
   setMode: (id: string, mode: VideoMode) => request<VideoDetail>("POST", `${video(id)}/mode`, { mode }),
   setAudio: (id: string, audio: VideoAudio) => request<VideoDetail>("POST", `${video(id)}/audio`, { audio }),
   answer: (id: string, answers: Record<string, string>) => request<VideoDetail>("POST", `${video(id)}/answers`, { answers }),

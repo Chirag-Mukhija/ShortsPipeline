@@ -137,6 +137,9 @@ describe("runner", () => {
     expect(message?.slice(message.indexOf("--resume"), message.indexOf("--resume") + 2)).toEqual(["--resume", `sess-${id}`]);
     expect(next).not.toContain("Bash");
     expect(next?.some((arg) => arg.startsWith("Bash(rm") || arg === "Bash(*)")).toBe(false);
+    // Uploading is the creator's own action: no run may ever do it, nor run any pnpm script it likes.
+    expect(next?.some((arg) => /upload/.test(arg) || /^Bash\(pnpm(:\*| \*|\))/.test(arg))).toBe(false);
+    expect(next).toContain("Bash(pnpm cut:render:*)");
   });
 
   it("pauses the whole queue at the usage limit and re-queues the interrupted stage", async () => {

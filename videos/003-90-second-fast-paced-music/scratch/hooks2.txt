@@ -1,0 +1,5 @@
+Partly missing. Why does this QR code still read?
+30% of its codewords gone. It still scans.
+Why does a QR code with a hole in it still read?
+Partly missing. It still reads. Why?
+Up to 30% of its codewords can go missing. It still scans.

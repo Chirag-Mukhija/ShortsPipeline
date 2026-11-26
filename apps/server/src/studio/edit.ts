@@ -187,6 +187,8 @@ export function setNotes(id: string, notes: EditNote[]): EditNote[] {
   return notes;
 }
 
+export const renderRunning = (id: string): boolean => jobs.get(id)?.status === "running";
+
 // Render jobs run the repo scripts in the background, one per video; the page polls while one runs.
 export function startJob(id: string, kind: RenderKind, beat?: string): RenderJob {
   const running = jobs.get(id);

@@ -1,0 +1,197 @@
+{
+  "version": 2,
+  "duration": 89.516,
+  "faceCam": false,
+  "audio": "music",
+  "music": {
+    "trackId": "incompetech-laserpack",
+    "title": "Laserpack",
+    "credit": "Laserpack Kevin MacLeod (incompetech.com)\nLicensed under Creative Commons: By Attribution 4.0\nhttps://creativecommons.org/licenses/by/4.0/"
+  },
+  "mix": { "musicStart": 0.968, "fadeIn": 0.2, "fadeOut": 1.5 },
+  "style": "studio",
+  "look": { "bg": "#F5F2EA", "surface": "#FFFFFF", "ink": "#111111", "muted": "#6B665C", "accent": "#111111", "accent2": "#6B665C", "radius": 2, "motion": "snappy" },
+  "segments": [
+    {
+      "id": "s01-hook",
+      "start": 0,
+      "end": 10.316,
+      "layout": "full",
+      "move": "push",
+      "visual": { "kind": "scene", "file": "scenes/cut/hook.tsx", "basedOn": ["shape-intro"], "mode": "graphic" },
+      "cues": [
+        { "at": 0.938, "word": "beam" },
+        { "at": 1.876, "word": "still" },
+        { "at": 3.751, "word": "read" },
+        { "at": 6.565, "word": "through" },
+        { "at": 7.503, "word": "1994" },
+        { "at": 8.441, "word": "DENSO" }
+      ],
+      "note": "HOOK (b0 to b16, 7.5 s, 1920x1080). Painted on void #0B0B0F by the scene itself (the film's look is paper). SHARED HELPER scenes/cut/qr.ts, imported by hook.tsx, ratio.tsx, growth.tsx and rebuild.tsx so the hook and the closing show the identical code and hole. qr.ts exports: (a) matrix(): boolean[29][29], a REAL standard QR code, version 3, error correction level H, 29 x 29, text 'PARTLY MISSING. IT STILL READS.' in alphanumeric mode (31 chars, fits 3-H; mask chosen by the standard's penalty rule; format info correct); (b) cwOf(row, col): the codeword (0 to 69) and RS block (2 blocks of 13 data + 22 EC, interleaved) a module belongs to, or null for function modules (finders, separators, timing, alignment, format info, dark module), plus cwCells(i): the 8 modules of codeword i in the standard's real placement order (mostly 2 x 4 cell groups in straight runs, bent at the turns and around the alignment pattern; draw groups from these real cells, never invented rectangles); (c) HOLE: the lost modules = the union of WHOLE codewords forming one ragged cluster just below and right of centre, 8 to 12 codewords in total, at most 8 in either RS block, none touching a function module; (d) plausibleMatrix(size, seed) for sizes other than 29 (finders, timing, seeded random data; never described as readable). Self-check function in qr.ts, run once by the builder and reported: re-read every codeword from matrix() and confirm each RS block's syndromes are zero, confirm HOLE is whole codewords with no function module and the counts above. No decoder is available, so NOTHING on screen or in comments may claim the code scans; the cards say only what they say. HOW THE CODE IS DRAWN, in every scene that shows it: a STANDARD code, ink #111111 modules on a white #FFFFFF tile that includes a 4-module quiet zone (33 x 33 modules in all, about 29 px per module, tile 960 px square), centred on void; NOT white modules on black. A lost module is a hole in the tile through to the void (nothing painted there, no outline). DAMAGE IS SHOWN BY EXACTLY WHICH MODULES ARE LOST, only HOLE modules. 'Lime flash' means the tile's white cells (data area and quiet zone) turn lime #D7FF3A while the ink modules stay ink #111111, then settle back to white. TIMELINE (seconds from segment start): 0 to 0.938: intact tile full frame on frame 0, 3% push-in running over the whole scene, no type. 0.938 (b2): a red #FF3B2F beam, 14 px wide diagonal bar of light, punches in from the upper left in 0.12 s toward the hole; every HOLE module (ink and white alike) flies out up and right as a small square on its own path (nearest to the beam first, 30 ms stagger, 0.6 s travel, slight rotation); the cells bordering the hole get a soft red glow (40% fading to 0 by 1.4 s). No camera shake. Card 'Partly missing.' lands (Inter 900, white, left margin, two lines at the largest size that fits about 460 px, bottom-aligned with the tile, 0.25 s slide-up per line), holds to 3.751. 1.876 to 3.751 (b4 to b8, the breath): everything frozen: the hole hangs open, loose modules stop mid-flight, glow at 25%, only the 3% push moves. 3.751 (b8): a 6 px lime scan line sweeps left to right over 1.6 s; behind it the tile's white cells turn lime for 0.25 s then settle (a wave following the line), ink modules unchanged; the line passes over the hole and flashes nothing there. Card 'It still reads.' replaces the first with a 0.2 s wipe and holds to the end. 5.637 (b12): fast push-in (ease-in, 1.8 s, to about 12x at the hole's centre) straight through the hole into void, the lime line smearing off the edge; cards fade out over 0.3 s from 5.637; the frame is void by 7.3. 7.503 (b16, the downbeat, cue 6, card T3 '1994. DENSO.'): a hard colour-block cut to paper #F5F2EA. '1994.' is built from hundreds of square ink modules that rain in and stamp down on the beat into digits drawn on a module grid (a 5 x 7 module font at about 44 px per module, filling the frame's width), and at 8.441 (b18) 'DENSO.' snaps in under it, Inter 900 ink, about 200 px. Both hold to 10.316. Red only as beam and glow, lime only as the read. Texts word for word."
+    },
+    {
+      "id": "s03-barcode-limit",
+      "start": 10.316,
+      "end": 18.737,
+      "layout": "full",
+      "transitionIn": "push",
+      "move": "drift",
+      "visual": {
+        "kind": "template",
+        "template": "kinetic-lyrics",
+        "props": {
+          "lines": [
+            { "text": "A barcode held about 20 characters", "key": "20", "shape": "giant" },
+            { "text": "Some workers scanned", "key": "scanned", "shape": "stair" },
+            { "text": "up to about 1,000 barcodes daily", "key": "1,000", "shape": "stack" }
+          ],
+          "energy": "mid",
+          "seed": 41,
+          "startWord": "A"
+        }
+      },
+      "cues": [
+        { "at": 0, "word": "A" },
+        { "at": 0.459, "word": "barcode" },
+        { "at": 0.938, "word": "held" },
+        { "at": 1.397, "word": "about" },
+        { "at": 1.856, "word": "20" },
+        { "at": 2.345, "word": "characters" },
+        { "at": 3.752, "word": "Some" },
+        { "at": 4.201, "word": "workers" },
+        { "at": 4.69, "word": "scanned" },
+        { "at": 5.139, "word": "up" },
+        { "at": 5.618, "word": "to" },
+        { "at": 6.106, "word": "about" },
+        { "at": 6.555, "word": "1,000" },
+        { "at": 7.014, "word": "barcodes" },
+        { "at": 7.513, "word": "daily" }
+      ],
+      "note": "T4 then T5 as pure kinetic type, the film's theme: T4 to 3.75 s with '20' filling the frame, T5 from 3.75 s to the end."
+    },
+    {
+      "id": "s05-two-people",
+      "start": 18.737,
+      "end": 22.01,
+      "layout": "full",
+      "transitionIn": "fade",
+      "move": "hold",
+      "visual": {
+        "kind": "template",
+        "template": "stat-punch",
+        "props": { "value": 2, "decimals": 0, "outOf": 81, "label": "It started with two people.", "labelWord": "It", "source": "DENSO", "visual": "dots", "landWord": "2" }
+      },
+      "cues": [
+        { "at": 0.459, "word": "2" },
+        { "at": 0.948, "word": "It" }
+      ],
+      "note": "T6: two of 81 dots fill on a 9 x 9 grid (two modules alone). The template's required source line reads only 'DENSO', the company named in sources [1] and [26]."
+    },
+    {
+      "id": "s06-ratio",
+      "start": 22.01,
+      "end": 35.639,
+      "layout": "full",
+      "transitionIn": "cut",
+      "move": "track",
+      "visual": { "kind": "scene", "file": "scenes/cut/ratio.tsx", "basedOn": ["flow-diagram"], "mode": "graphic" },
+      "cues": [
+        { "at": 0, "word": "search" },
+        { "at": 4.23, "word": "stop" },
+        { "at": 6.126, "word": "fold" },
+        { "at": 8.002, "word": "first" },
+        { "at": 8.92, "word": "second" },
+        { "at": 9.877, "word": "third" },
+        { "at": 10.815, "word": "spin" }
+      ],
+      "note": "THE RAREST RATIO AND THE FINDERS (cues 11 to 15, b47 to b76, 13.6 s, 1920x1080; no checker limit on scenes, the picture changes every 2 to 4 s). On paper #F5F2EA (the film's look), imports qr.ts (see s01-hook for its full spec, the hole rule, the self-check, and 'nothing may claim the code scans'). THE CODE LOOK, applied here and in every scene: ink #111111 modules on a white #FFFFFF tile with a 4-module quiet zone; a lost module is a hole in the tile to the background; lime flash = the tile's white cells go lime while ink stays ink. TIMELINE: 0 to 4.23 (cue 11, card T7 'They searched print for the rarest pattern.', Inter 900 ink, up to 90 px, top-left on two lines, rising in word by word, held to 4.23): a conveyor of printed matter slides right to left across the middle third at about 400 px/s, ink #111111 blocks only: a leaflet (rectangle with five ragged text lines), a magazine (larger rectangle, one big square, three text lines), a corrugated carton (vertical-ribbed band and a barcode strip), repeating in that order, 120 px gaps; every item carries plain vertical bars. One fixed red #FF3B2F beam (10 px bar with 30 px glow) at x = 960; an item's bars flash red for 0.12 s as they pass it. Under the conveyor a pattern meter (24 empty ticks, no numerals) fills one tick per item. 4.23 (b56, cue 12, card T8 '1 : 1 : 3 : 1 : 1' in JetBrains Mono 500, ink, 110 px, above the bars, held to 8.002): the conveyor stops dead in 0.1 s, the beam flashes once and collapses to a line, the items drop out (0.35 s). Five bars rise from the floor in 0.4 s (60 ms stagger), widths 90, 90, 270, 90, 90 px (ratio 1 : 1 : 3 : 1 : 1), height 420, ink, white with a 3 px ink outline, ink, white, ink. 6.126 (b60, cue 13): the bars fold inward in 0.8 s into a 7 x 7 finder square (ink 7, white 5, ink 3), 420 px, held crisp. 8.002 (b64, cue 14, card T9 'Found at any angle.' lands, Inter 900 ink, top-left, held to the end): the finder shrinks and a full-size empty 29 x 29 code frame (tile outline only, with its real timing and function areas empty) is shown; finder squares land on three corners with a hard snap, one each at 8.002, 8.92, 9.877 (b64, b66, b68), the first being the folded one itself. 10.815 (b70, cue 15): the real code fills in (the same matrix() as the hook, hole absent, tile with ink on white), and the whole tile spins to a different angle on every beat (b70 to b75: 10.815, 11.254, 11.733, 12.192, 12.681, 13.17 s; ease-out 0.25 s each, ending on a 30 degree tilt held to 13.629); the three finder squares stay lit: their white cells lime #D7FF3A, ink unchanged. Red only as the beam on the conveyor. Texts word for word."
+    },
+    {
+      "id": "s07-growth",
+      "start": 35.639,
+      "end": 52.481,
+      "layout": "full",
+      "transitionIn": "mask",
+      "move": "pull",
+      "visual": { "kind": "scene", "file": "scenes/cut/growth.tsx", "basedOn": ["parts-combine"], "mode": "graphic" },
+      "cues": [
+        { "at": 1.846, "word": "grow" },
+        { "at": 4.19, "word": "AIM" },
+        { "at": 5.128, "word": "JIS" },
+        { "at": 6.096, "word": "ISO" },
+        { "at": 7.992, "word": "Micro" },
+        { "at": 9.369, "word": "rMQR" },
+        { "at": 11.254, "word": "free" },
+        { "at": 14.992, "word": "finder" }
+      ],
+      "note": "HOW IT GREW, THE FAMILY AND THE GATE (cues 16 to 22, b76 to b112, 16.84 s, 1920x1080). On void #0B0B0F, painted by the scene. Uses plausibleMatrix(size, seed) from scenes/cut/qr.ts for every size here (these are plausible patterns, never described as readable or scannable). CODE LOOK as in s01-hook: ink #111111 modules on a white #FFFFFF tile with a 4-module quiet zone on void; the tile grows with the code. TIMELINE: 0 to 1.846 (b76 to b80): a 21 x 21 code on its tile, 300 px, centred; card T10 '21 x 21 to 177 x 177' in JetBrains Mono 500, white, 84 px, 120 px under the tile, '21 x 21' from 0, ' to ' and '177 x 177' from 0.4; holds to 4.19. 1.846 to 4.19 (b80 to b85): the code grows ring by ring, +4 modules per side per step, 39 steps from 21 to 177, accelerating (0.12 s down to 0.012 s per step); the new ring draws as a 1-module outline then fills; the '177 x 177' half ticks up in steps of 4; tile scales so the 177 code (with its quiet zone) fits a 940 px square at the end; draw as one canvas or SVG path. 4.19 (b85): the full 177 code slides to the left third in 0.4 s (700 px, x centre 520); card T10 fades out. Three slabs (white rectangles 640 x 140, Inter 900 ink text 72 px, 6 px flat 25% black offset shadow, stacked on the right with 40 px gaps) stamp down on 0.12 s scale-from-1.25 snaps: 'AIM 1997.' at 4.19, 'JIS 1999.' at 5.128, 'ISO 2000.' at 6.096 (b85, b87, b89), card T11 'AIM 1997. JIS 1999. ISO 2000.' held to 7.992. 7.992 (b93, cue 19, card T12 'Micro QR 2004. rMQR 2022.' lands, JetBrains Mono 500 white 56 px, bottom centre, held to the end 11.25 s): the slabs slide off right; the 177 code settles centre-left at true proportion (177 modules tall = 700 px, so one module about 3.95 px) and a tiny 11 x 11 Micro QR tile (one finder square only, plausibleMatrix 11, 4-module quiet zone as the look rule says, about 59 px) lands beside it with a hard snap at 7.992. 9.369 (b96, cue 20): a long thin 7 x 43 rMQR tile (about 170 x 28 px at the same module size) slams in below the Micro QR; the three now sit in true proportion (11 x 11, 7 x 43, 177 x 177) and the camera holds, with a 2% push. 11.254 (b100, cue 21, card T13 'Free to use, if you follow the standard.', Inter 900 white, two lines, about 84 px, replaces T12, held to the end of the gate at 14.992 plus the first moments of the transition): the small codes slide away, the full 177 code centres, a heavy white boom-gate bar (with ink diagonal stripes) lies across it; on 11.254 it swings up through 90 degrees and locks vertical with a small settle, the code beneath released; nothing else moves. 14.992 (b108, cue 22): the code's top-left finder square grows until its paper-coloured field #F5F2EA fills the frame, the film's one finder-fill transition; the frame is plain paper by 16.4. T13 must be on screen at least 4.0 s in all, so it may stay above the fill until it is covered. No red, no lime in this scene. Texts word for word."
+    },
+    {
+      "id": "s09-digits",
+      "start": 52.481,
+      "end": 59.874,
+      "layout": "full",
+      "transitionIn": "cut",
+      "move": "hold",
+      "visual": {
+        "kind": "template",
+        "template": "chart-bars",
+        "props": {
+          "kind": "bar",
+          "data": [
+            { "label": "UPC", "value": 12 },
+            { "label": "Biggest QR", "value": 7089 }
+          ],
+          "decimals": 0,
+          "orient": "columns",
+          "title": "Digits: UPC barcode, biggest QR",
+          "drawWord": "UPC",
+          "highlight": { "index": 1, "note": "version 40, level L", "word": "Biggest" }
+        }
+      },
+      "cues": [
+        { "at": 0.479, "word": "UPC" },
+        { "at": 3.771, "word": "Biggest" }
+      ],
+      "note": "T14 and T15 as one true-scale chart: 12 digits against 7,089 digits, the UPC bar a sliver. The caveat tag 'version 40, level L' is pinned to the number it qualifies."
+    },
+    {
+      "id": "s10-count",
+      "start": 59.874,
+      "end": 74.76,
+      "layout": "full",
+      "transitionIn": "mask",
+      "move": "slam",
+      "visual": { "kind": "scene", "file": "scenes/cut/count.tsx", "basedOn": ["tangle-to-line"], "mode": "graphic" },
+      "cues": [
+        { "at": 0, "word": "wheel" },
+        { "at": 1.875, "word": "double" },
+        { "at": 3.302, "word": "wall" },
+        { "at": 7.503, "word": "slam" },
+        { "at": 10.795, "word": "atoms" },
+        { "at": 11.733, "word": "estimate" }
+      ],
+      "note": "THE COUNT, THE PEAK (cues 25 to 29, b128 to b160, 14.9 s, 1920x1080). On void #0B0B0F, painted by the scene; palette white #FFFFFF and faint grey (white at 12%) only; no red, no lime, no QR here. TIMELINE: 0 to 1.875 (b128 to b132, cue 25, card T16 '7,089 digits. 10 choices each.' Inter 900 white 72 px lower left, from 0 to 3.302): one digit wheel centred, a ring of ten notches 0 to 9 with a window on the front showing the digit, 520 px; it spins and snaps to a new digit on each beat (0, 0.479, 0.938, 1.426 s). 1.875 (b132, cue 26): the wheel doubles into a row of 2, then 4 at 2.354, then 8 at 2.833 (b133, b134), each doubling on its beat; the camera pulls back to keep the row in frame. 3.302 (b135, cue 27, card T17 '10 x 10 x 10 ... 7,089 times' in JetBrains Mono 500 white 56 px, left, held to 7.503): the row stacks into a wall of wheels 10 x 10 x 10 (a 10 x 10 face with depth, drawn as layered grids); the camera pulls back fast and wide for the one fully wide moment of the film (to 6 s); the working runs up the left side in mono: '10', '10 x 10', '10 x 10 x 10' stacking up line by line, then '...' on the last beat. 7.503 (b144, cue 28, card T18 '10^7,089 codes. At least.' Inter 500 white 64 px lower left, the 7,089 set as a raised exponent, held to 10.795, with the mono tag 'digits only' JetBrains Mono 500 28 px white 70% below it, same hold): the wall collapses (0.5 s, wheels scale to 0 toward a point left of centre) and a white '10' at 520 px (Inter 900, x centre about 600, y 470) slams in with a scale-from-1.4 snap, then 8 frames later the raised exponent '7,089' at 260 px; behind everything a grid of mono zeros (JetBrains Mono 500, 40 px, white at 12%) drifts off all four edges at two parallax speeds. 10.795 (b151, cue 29, card T19 'Atoms in the visible universe: about 10^80.' Inter 500 white 64 px lower right, the 80 raised, held to 14.886): the number shrinks to 62% to the upper left; a dot field (48 x 27 white dots, 8 px) enters at the right third; on every beat from 10.795 to the end (nine beats, b151 to b159) the field's scale halves (1 to 1/512, ease-out each) until it is one 3 px dot beside the giant number; only the scale changes, so no extra number is implied. The mono tag 'estimate: 10^78 to 10^82' (JetBrains Mono 500 28 px white 70%) sits lower left from 11.733 (b153) to the end, after 'digits only' has gone. Texts word for word."
+    },
+    {
+      "id": "s11-rebuild",
+      "start": 74.76,
+      "end": 89.516,
+      "layout": "full",
+      "transitionIn": "whip",
+      "move": "read",
+      "visual": { "kind": "scene", "file": "scenes/cut/rebuild.tsx", "basedOn": ["quote-card"], "mode": "graphic" },
+      "cues": [
+        { "at": 0, "word": "lift" },
+        { "at": 1.876, "word": "red" },
+        { "at": 3.751, "word": "bars" },
+        { "at": 5.627, "word": "restore" },
+        { "at": 7.503, "word": "scratch" },
+        { "at": 8.431, "word": "scan" },
+        { "at": 11.723, "word": "return" },
+        { "at": 13.06, "word": "paper" }
+      ],
+      "note": "THE REBUILD AND THE CLOSE (cues 30 to 36, b160 to the end, 14.76 s, 1920x1080). Void #0B0B0F until 13.06, then paper #F5F2EA. Imports matrix(), cwCells() and HOLE from scenes/cut/qr.ts (full spec, hole rule, self-check, and 'nothing may claim the code scans' are in s01-hook): the SAME code and the SAME hole as the hook. CODE LOOK: ink #111111 modules on a white #FFFFFF tile with a 4-module quiet zone, 960 px, on void; a lost module is a hole in the tile through to the void; lime flash = the tile's white cells go lime while ink stays ink. Cards stay in the left margin (Inter 900, white, about 460 px wide, two lines), one at a time, each held for its whole span. TIMELINE: 0 to 3.282 (b160 to b167, cue 30, card T20 '8 bits = 1 codeword'): the torn tile returns with the hook's hole; its remaining data modules lift off the grid in groups of 8, the real codeword groups from cwCells() (mostly 2 x 4 cells, bent at turns), each group boxed by a 2 px white frame (alternating 100% and 70% white) with a flat shadow under it; lifts staggered 20 ms from the code's top to bottom; no new colour yet. 1.876 to 3.282 (b164 to b167, cue 31): the groups touched by the hole (the codewords adjoining it, the ones that lost modules) turn red #FF3B2F, in batches of two or three per beat so all are red by 3.282; red tick marks (no numerals) tally along the tile's bottom edge, one per red group; the groups outside the hole stay white. 3.282 to 7.503 (b167 to b176, cue 32 and 33, card T21 'Level H restores about 30% of codewords.'): at 3.751 (b168) four small plain white bars rise at the right margin at heights in the ratio 7 : 15 : 25 : 30, left to right, no labels, no numerals, the tallest outlined, about 220 px wide in all and at most 300 px tall (they are context, the code stays the subject); from 5.627 (b172) one beat at a time (5.627, 6.096, 6.565, 7.034) the red groups flip to lime in batches, until none is red: the data is restored (a picture of 'restores', not a claim about how). 7.503 to 11.723 (b176 to b185, cue 34, card T22 'Reed-Solomon. CDs use the same family.'): a swap cut (0.15 s) to a CD seen flat, 700 px, concentric rings of small white squares (12 rings, 2 px gaps), centred, rotating 12 degrees per second; at 7.503 a red scratch (8 px diagonal line with glow, drawn in 0.25 s) removes the modules it crosses; at 8.431 (b178) a lime 6 px scan line sweeps left to right over 1.6 s and the rings under it go lime for 0.25 s as it crosses, including those beyond the scratch, then settle; the scratch gap stays empty. 11.723 (b185, cue 35, card T23 'Partly missing. It still reads.', white): the hook's tile and hole return on void (swap 0.15 s); a lime scan line reads it over 0.9 s (the tile's white cells flash lime, ink unchanged) and as it crosses the hole the missing modules come up in lime #D7FF3A cells (ink modules of the hole as ink, white ones as lime) one by one at a 25 ms stagger until the hole is filled exactly (the same module set): what was lost is read back. 13.06 to 14.756 (b188, the closing downbeat, cue 36): hard colour-block cut to paper in 0.1 s: the code on paper, ink modules on its white tile with a 4-module quiet zone (860 px), the patch's white cells lime #D7FF3A and its ink cells ink, so the patch is visibly restored; the card persists now in ink, Inter 900, 120 px, left margin; no logo, no ask; holds still to the end while the music's tail runs. Texts word for word."
+    }
+  ]
+}

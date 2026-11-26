@@ -528,7 +528,8 @@ const Scene3: FC = () => (
 
 const Beat03: FC = () => {
   const { t } = useTime();
-  if (t < START || t >= END) return null;
+  // Half a frame of slack: the beat clip's first frame is START rounded to the frame grid, which can land just before START.
+  if (t < START - 1 / 60 || t >= END) return null;
   const mp = clamp01((t - MASK_AT) / MASK_DUR);
   if (mp <= 0) return <Scene3 />;
   // Hand-off: clean paper grows out of the robot's lit eye, so Beat 4 starts on a fresh page.
